@@ -17,7 +17,7 @@ const ctx = { window: {}, console };
 ctx.window = ctx;
 vm.createContext(ctx);
 ['core/boot.js', 'data/config.js', 'data/crops.js', 'data/trees.js', 'data/animals.js',
- 'data/decor.js', 'data/upgrades.js', 'data/ranks.js'].forEach(f => {
+ 'data/decor.js', 'data/upgrades.js', 'data/factories.js', 'data/greenhouses.js', 'data/ranks.js'].forEach(f => {
   vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f });
 });
 const FF = ctx.FF;
@@ -42,7 +42,7 @@ function upLvl(s, effect) {
   return u ? (s.up[u.id] || 0) : 0;
 }
 function bestCrop(s) {
-  const g = up(s, 'growth'), pm = up(s, 'price');
+  const g = growthMult(s), pm = up(s, 'price');
   let best = null, br = -1;
   for (const c of C.crops) {
     if (!s.unl[c.id]) continue;
@@ -58,14 +58,28 @@ function efficiency(s) {
   return PLAYER_EFF;
 }
 function passiveEff(s) { return upLvl(s, 'harvester') > 0 ? 1 : PLAYER_EFF; }
+function ghMult(s) {
+  let m = 1;
+  for (const gh of C.greenhouses) { const n = s.gh[gh.id] || 0; if (n && gh.growth) m *= Math.pow(1 + gh.growth, n); }
+  return m;
+}
+function growthMult(s) { return up(s, 'growth') * ghMult(s); }
+function factoryReady(s, f) {
+  if (!f.need) return true;
+  if (f.need.crop) return !!s.unl[f.need.crop];
+  if (f.need.animal) return (s.pens[f.need.animal] || 0) > 0;
+  return true;
+}
 
 function income(s) {
-  const g = up(s, 'growth'), pm = up(s, 'price');
+  const g = growthMult(s), pm = up(s, 'price');
   const bc = bestCrop(s);
   const rawField = s.F * bc.rate;
   let rawPas = 0, items = bc.crop ? s.F / (bc.crop.time / g) : 0;
   for (const t of C.trees) { const n = s.trees[t.id] || 0; rawPas += n * t.value * pm / (t.interval / g); items += n / (t.interval / g); }
   for (const a of C.animals) { const n = s.pens[a.id] || 0; rawPas += n * a.value * pm / (a.interval / g); items += n / (a.interval / g); }
+  for (const f of C.factories) { const n = s.facs[f.id] || 0; rawPas += n * f.value * pm / (f.interval / g); items += n / (f.interval / g); }
+  for (const gh of C.greenhouses) { const n = s.gh[gh.id] || 0; rawPas += n * gh.value * pm / (gh.interval / g); items += n / (gh.interval / g); }
   // Arbeiter: ca. 0,8 Ernten/s pro Arbeiter (bei Tempo 1), ernten + säen neu + verkaufen mit Bonus
   const W = up(s, 'workers') || 0, sp = up(s, 'workerspeed') || 1;
   const share = items > 0 ? Math.min(1, (W * 0.8 * sp) / items) : 0;
@@ -77,23 +91,27 @@ function used(s) {
   let u = s.F;
   for (const t of C.trees) u += s.trees[t.id] || 0;
   for (const a of C.animals) u += (s.pens[a.id] || 0) * a.w * a.h;
+  for (const f of C.factories) u += (s.facs[f.id] || 0) * f.w * f.h;
+  for (const gh of C.greenhouses) u += (s.gh[gh.id] || 0) * gh.w * gh.h;
   return u;
 }
 function capacityTiles(s) {
   return Math.floor((s.plots * CFG.plotSize * CFG.plotSize - FIXED_TILES) * (1 - PATH_SHARE));
 }
 function clone(s) {
-  return { ...s, unl: { ...s.unl }, up: { ...s.up }, trees: { ...s.trees }, pens: { ...s.pens } };
+  return { ...s, unl: { ...s.unl }, up: { ...s.up }, trees: { ...s.trees }, pens: { ...s.pens }, facs: { ...s.facs }, gh: { ...s.gh } };
 }
 
 /* Wert pro Kachel der einzelnen Anlagen (für Ersetzen) */
 function perTile(s) {
-  const g = up(s, 'growth'), pm = up(s, 'price');
+  const g = growthMult(s), pm = up(s, 'price');
   const list = [];
   const bc = bestCrop(s);
   if (s.F > 0) list.push({ type: 'field', id: 'field', size: 1, count: s.F, rate: bc.rate, cost: FIELD_COST_REAL });
   for (const t of C.trees) if (s.trees[t.id]) list.push({ type: 'tree', id: t.id, size: 1, count: s.trees[t.id], rate: t.value * pm / (t.interval / g), cost: t.cost });
   for (const a of C.animals) if (s.pens[a.id]) list.push({ type: 'pen', id: a.id, size: a.w * a.h, count: s.pens[a.id], rate: a.value * pm / (a.interval / g) / (a.w * a.h), cost: a.cost });
+  for (const f of C.factories) if (s.facs[f.id]) list.push({ type: 'factory', id: f.id, size: f.w * f.h, count: s.facs[f.id], rate: f.value * pm / (f.interval / g) / (f.w * f.h), cost: f.cost });
+  for (const gh of C.greenhouses) if (s.gh[gh.id]) list.push({ type: 'green', id: gh.id, size: gh.w * gh.h, count: s.gh[gh.id], rate: gh.value * pm / (gh.interval / g) / (gh.w * gh.h), cost: gh.cost });
   return list.sort((x, y) => x.rate - y.rate);
 }
 function removeTiles(s, need) {
@@ -104,7 +122,9 @@ function removeTiles(s, need) {
     const w = list[0];
     if (w.type === 'field') { s.F--; refund += FIELD_COST_REAL * CFG.refund; }
     else if (w.type === 'tree') { s.trees[w.id]--; refund += w.cost * CFG.refund; }
-    else { s.pens[w.id]--; refund += w.cost * CFG.refund; }
+    else if (w.type === 'pen') { s.pens[w.id]--; refund += w.cost * CFG.refund; }
+    else if (w.type === 'factory') { s.facs[w.id]--; refund += w.cost * CFG.refund; }
+    else { s.gh[w.id]--; refund += w.cost * CFG.refund; }
   }
   return refund;
 }
@@ -131,6 +151,8 @@ function options(s) {
   add('Feld', FIELD_COST_REAL, s2 => { const e = spaceFor(s2, 1); if (e === null) return null; s2.F++; return e; });
   for (const t of C.trees) add('Baum ' + t.name, t.cost, s2 => { const e = spaceFor(s2, 1); if (e === null) return null; s2.trees[t.id] = (s2.trees[t.id] || 0) + 1; return e; });
   for (const a of C.animals) add('Tier ' + a.name, a.cost, s2 => { const e = spaceFor(s2, a.w * a.h); if (e === null) return null; s2.pens[a.id] = (s2.pens[a.id] || 0) + 1; return e; });
+  for (const f of C.factories) if (factoryReady(s, f)) add('Fabrik ' + f.name, f.cost, s2 => { const e = spaceFor(s2, f.w * f.h); if (e === null) return null; s2.facs[f.id] = (s2.facs[f.id] || 0) + 1; return e; });
+  for (const gh of C.greenhouses) add('Gewächshaus ' + gh.name, gh.cost, s2 => { const e = spaceFor(s2, gh.w * gh.h); if (e === null) return null; s2.gh[gh.id] = (s2.gh[gh.id] || 0) + 1; return e; });
   for (const u of C.upgrades) {
     const lvl = s.up[u.id] || 0;
     if (lvl < u.costs.length) add('Upgrade ' + u.name + ' ' + (lvl + 1), u.costs[lvl], s2 => { s2.up[u.id] = lvl + 1; return 0; });
@@ -152,7 +174,7 @@ function options(s) {
 /* ------- Simulation ------- */
 let s = {
   money: CFG.startMoney, total: 0, t: 0,
-  plots: 1, F: 12, unl: { wheat: 1 }, up: {}, trees: {}, pens: {}
+  plots: 1, F: 12, unl: { wheat: 1 }, up: {}, trees: {}, pens: {}, facs: {}, gh: {}
 };
 const log = [];
 const milestones = [1e3, 1e4, 1e5, 1e6, 1e7, 5e7, CFG.goal];
@@ -186,7 +208,7 @@ while (s.total < CFG.goal && s.t < 3600 * 200 && guard++ < 20000) {
   const { money, total, t } = s;
   s = best.s2; s.money = money; s.total = total; s.t = t;
   if (best.plot) { /* plots++ ist schon in s2 */ }
-  if (guard % 1 === 0 && (best.name.startsWith('Pflanze') || best.name.startsWith('Tier') || best.name.startsWith('Baum') || best.name.startsWith('Upgrade') || best.name.startsWith('Grundstück'))) {
+  if (guard % 1 === 0 && (best.name.startsWith('Pflanze') || best.name.startsWith('Tier') || best.name.startsWith('Baum') || best.name.startsWith('Upgrade') || best.name.startsWith('Grundstück') || best.name.startsWith('Fabrik') || best.name.startsWith('Gewächshaus'))) {
     log.push({ label: '  gekauft: ' + best.name, t: s.t, plots: s.plots, inc: income(s) });
   }
 }
