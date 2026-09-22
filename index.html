@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#24562e">
+  <title>Fenriy Farm</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!--
+    UPDATE-TRICK: Erhöhe FF_BUILD bei jedem Update (z.B. '0.1.1'). Dann laden alle Spieler
+    automatisch die neuen Dateien und nicht die alten aus dem Browser-Cache.
+    Neue Script-Dateien einfach in die Liste "files" eintragen.
+  -->
+  <script>
+    window.FF_BUILD = '0.2.0';
+    (function () {
+      var files = [
+        'js/core/boot.js',
+        'js/data/config.js',
+        'js/data/crops.js',
+        'js/data/trees.js',
+        'js/data/animals.js',
+        'js/data/decor.js',
+        'js/data/upgrades.js',
+        'js/data/ranks.js',
+        'js/data/changelog.js',
+        'js/core/util.js',
+        'js/core/sprites.js',
+        'js/core/state.js',
+        'js/core/logic.js',
+        'js/core/workers.js',
+        'js/core/audio.js',
+        'js/core/cutscene.js',
+        'js/core/render.js',
+        'js/core/input.js',
+        'js/core/ui.js',
+        'js/core/main.js'
+      ];
+      files.forEach(function (f) {
+        var s = document.createElement('script');
+        s.src = f + '?v=' + window.FF_BUILD;
+        s.async = false;
+        document.head.appendChild(s);
+      });
+    })();
+  </script>
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="hud">
+    <div class="box hud-money">
+      <img class="coin-img" alt="">
+      <div>
+        <div id="money" class="money">0</div>
+        <div id="rate" class="rate"></div>
+      </div>
+      <span id="hudFloat" class="hud-float"></span>
+    </div>
+    <div class="box hud-goal" id="hudGoal" title="Dein Auftrag">
+      <div class="goal-line"><span id="rank">Kleiner Bauer</span><span id="goalText"></span></div>
+      <div class="bar"><i id="goalBar"></i></div>
+    </div>
+  </div>
+
+  <div id="zoomBtns">
+    <button class="btn sq" id="zoomIn" title="Vergrößern (+)">+</button>
+    <button class="btn sq" id="zoomOut" title="Verkleinern (-)">&minus;</button>
+    <button class="btn sq" id="zoomHome" title="Zum Hof">&#8962;</button>
+    <button class="btn sq" id="soundBtn" title="Musik an/aus">&#9834;</button>
+  </div>
+
+  <div id="dock">
+    <div id="seedbar" class="hidden"></div>
+    <div id="toolbar">
+      <button class="btn tool" data-tool="farm" title="Ernten & Säen">Ernten</button>
+      <button class="btn tool" data-tool="build" title="Bauen">Bauen</button>
+      <button class="btn tool" data-tool="demolish" title="Abreißen">Abreißen</button>
+      <button class="btn tool" data-tool="pan" title="Karte verschieben">Karte</button>
+      <span class="sep"></span>
+      <button class="btn tool" data-panel="upgrades" title="Upgrades">Upgrades</button>
+      <button class="btn tool" data-panel="info" title="Auftrag & Menü">Auftrag</button>
+    </div>
+  </div>
+
+  <aside id="panel" class="hidden">
+    <div class="panel-head">
+      <h2 id="panelTitle"></h2>
+      <button class="btn sq" id="panelClose" title="Schließen">&times;</button>
+    </div>
+    <div id="panelBody"></div>
+  </aside>
+
+  <div id="cine"><i></i><i></i></div>
+  <button class="btn" id="skipIntro">Überspringen &raquo;</button>
+  <div id="dialog" class="hidden">
+    <div id="dlgName" class="dlg-name old"></div>
+    <div id="dlgText"></div>
+    <div id="dlgHint" class="hidden">&#9660; weiter</div>
+  </div>
+
+  <div id="toasts"></div>
+  <div id="tooltip" class="hidden"></div>
+  <div id="modalWrap" class="hidden"></div>
+
+  <noscript>Für Fenriy Farm muss JavaScript aktiviert sein.</noscript>
+</body>
+</html>
