@@ -58,6 +58,22 @@ Alle Spielinhalte stehen als einfache Listen in `js/data/`. **Ein neuer Eintrag 
 
 Vorhandene Effekte: `harvester`, `autosow`, `growth`, `price`, `capacity`, `workers` (Anzahl Arbeiter), `workerspeed` (Lauftempo der Arbeiter). Einfach eine weitere Stufe oder ein weiteres Upgrade mit demselben `effect` eintragen (Werte werden kombiniert).
 
+### Flüsse & Deko (`js/data/decor.js`)
+
+Ein Fluss ist ein Deko-Eintrag mit `art.type: 'water'` (verbindet sich wie ein Weg mit Nachbarkacheln). Neue Deko genauso als Eintrag ergänzen.
+
+### Produktionsstätten (`js/data/factories.js`)
+
+Verarbeiten deine Ernte zu wertvolleren Waren (Brot, Wurst, Käse, ...). Funktionieren wie Tierfarmen: füllen sich mit der Zeit, werden geerntet und verkauft. `need: { crop: 'wheat' }` oder `need: { animal: 'pigpen' }` legt fest, was zuerst freigeschaltet bzw. gebaut sein muss. Neue Produktionsstätte = neuer Eintrag, dazu ein passendes `icon` (`bread`, `meat`, `cheese`, oder in `js/core/sprites.js` bei `productIcon` ein neues ergänzen).
+
+### Gewächshäuser (`js/data/greenhouses.js`)
+
+Liefern selbst einen kleinen Ertrag und beschleunigen zusätzlich das Wachstum ALLER Felder, Bäume, Tierfarmen und Produktionsstätten um `growth` (z.B. `0.05` = +5 %, mehrere Gewächshäuser stapeln sich). Neue Ausbaustufe = neuer Eintrag.
+
+### Wetter (`js/core/weather.js`)
+
+Seltener, kurzer Regen (manchmal ein Gewitter mit Blitz & Donner), der das Wachstum kurzzeitig beschleunigt. Häufigkeit und Dauer oben in der Datei bei `MIN_GAP`/`MAX_GAP`/`MIN_DUR`/`MAX_DUR` einstellbar.
+
 ### Arbeiter
 
 Arbeiter (Upgrade *Arbeiter*) laufen selbstständig zu reifen Feldern, Bäumen und Tierfarmen, ernten, säen leere Felder neu, tragen die Ware zur Scheune und verkaufen sie mit Bonus. Einstellungen in `js/data/config.js`: `workerCarry` (wie viel sie tragen) und `workerBonus` (Verkaufsaufschlag). Das Verhalten steht in `js/core/workers.js`.
@@ -77,7 +93,7 @@ Der Monolog des alten Bauern steht in `buildSteps()`, jede `say('Alter Bauer', '
 ### Update veröffentlichen
 
 1. Änderungen in den Dateien machen.
-2. In `index.html` die Zeile `window.FF_BUILD = '0.2.0';` hochzählen (z. B. `'0.2.1'`). Dadurch laden alle Spieler automatisch die neuen Dateien statt der alten aus dem Browser-Cache.
+2. In `index.html` die Zeile `window.FF_BUILD = '0.3.0';` hochzählen (z. B. `'0.3.1'`). Dadurch laden alle Spieler automatisch die neuen Dateien statt der alten aus dem Browser-Cache.
 3. Einen Eintrag in `js/data/changelog.js` ergänzen.
 4. Dateien auf GitHub hochladen.
 
