@@ -7,5 +7,6 @@ FF.content.decor.push(
   { id: 'fence',     name: 'Holzzaun',    cost: 5,   art: { type: 'fence', wood: '#a8743c', dark: '#7d5228' } },
   { id: 'flowers',   name: 'Blumenbeet',  cost: 10,  art: { type: 'flowers', colors: ['#ff5a7a', '#ffd23c', '#7ab8ff'] } },
   { id: 'hay',       name: 'Heuballen',   cost: 15,  art: { type: 'hay' } },
-  { id: 'lamp',      name: 'Laterne',     cost: 40,  art: { type: 'lamp' } }
+  { id: 'lamp',      name: 'Laterne',     cost: 40,  art: { type: 'lamp' } },
+  { id: 'water',     name: 'Fluss',       cost: 14,  art: { type: 'water', base: '#3f7fd0', dark: '#264f8a' } }
 );
