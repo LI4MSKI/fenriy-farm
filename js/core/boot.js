@@ -8,6 +8,8 @@ window.FF = {
     trees: [],      // Bäume (liefern Früchte)
     animals: [],    // Tierfarmen / Gebäude (liefern Produkte)
     decor: [],      // Wege, Zäune, Deko
+    factories: [],  // Produktionsstätten (verarbeiten Ernte zu Brot, Fleisch, Käse, ...)
+    greenhouses: [],// Gewächshäuser (Wachstums-Bonus + eigener Ertrag)
     upgrades: [],   // Upgrades
     ranks: [],      // Rang-Titel nach verdientem Fenriy
     changelog: []   // Neuigkeiten

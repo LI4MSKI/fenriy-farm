@@ -90,10 +90,14 @@
     const out = [];
     if (tab === 'land') {
       out.push({ kind: 'field', def: FIELD_DEF });
-      FF.content.decor.forEach(function (d) { if (d.art.type === 'path' || d.art.type === 'fence') out.push({ kind: 'decor', def: d }); });
+      FF.content.decor.forEach(function (d) { if (d.art.type === 'path' || d.art.type === 'fence' || d.art.type === 'water') out.push({ kind: 'decor', def: d }); });
     } else if (tab === 'trees') FF.content.trees.forEach(function (d) { out.push({ kind: 'tree', def: d }); });
     else if (tab === 'animals') FF.content.animals.forEach(function (d) { out.push({ kind: 'pen', def: d }); });
-    else FF.content.decor.forEach(function (d) { if (d.art.type !== 'path' && d.art.type !== 'fence') out.push({ kind: 'decor', def: d }); });
+    else if (tab === 'produktion') {
+      FF.content.factories.forEach(function (d) { out.push({ kind: 'factory', def: d }); });
+      FF.content.greenhouses.forEach(function (d) { out.push({ kind: 'green', def: d }); });
+    }
+    else FF.content.decor.forEach(function (d) { if (d.art.type !== 'path' && d.art.type !== 'fence' && d.art.type !== 'water') out.push({ kind: 'decor', def: d }); });
     return out;
   }
 
@@ -104,8 +108,10 @@
     if (it.kind === 'field') meta = 'Wird mit deiner Saat bepflanzt';
     else if (it.kind === 'tree') meta = '1×1 · +' + U.fmtRate(FF.itemRate('tree', d)) + '/s';
     else if (it.kind === 'pen') meta = d.w + '×' + d.h + ' · ' + esc(d.product) + ' · +' + U.fmtRate(FF.itemRate('pen', d)) + '/s';
-    else meta = d.art.type === 'path' ? 'Weg' : d.art.type === 'fence' ? 'Zaun' : 'Deko';
-    const iconKind = it.kind === 'field' ? 'field' : it.kind === 'tree' ? 'tree' : it.kind === 'pen' ? 'animal' : 'decor';
+    else if (it.kind === 'factory') meta = d.w + '×' + d.h + ' · ' + esc(d.product) + ' · +' + U.fmtRate(FF.itemRate('factory', d)) + '/s' + (FF.factoryReady(d) ? '' : ' · braucht: ' + esc(FF.factoryNeedText(d)));
+    else if (it.kind === 'green') meta = d.w + '×' + d.h + ' · beschleunigt alles · +' + U.fmtRate(FF.itemRate('green', d)) + '/s';
+    else meta = d.art.type === 'path' ? 'Weg' : d.art.type === 'fence' ? 'Zaun' : d.art.type === 'water' ? 'Fluss' : 'Deko';
+    const iconKind = it.kind === 'field' ? 'field' : it.kind === 'tree' ? 'tree' : it.kind === 'pen' ? 'animal' : it.kind === 'factory' ? 'factory' : it.kind === 'green' ? 'green' : 'decor';
     return '<button class="card' + (sel ? ' sel' : '') + '" data-act="pick" data-kind="' + it.kind + '" data-id="' + d.id + '" data-cost="' + cost + '">' +
       '<img class="ic" src="' + art.icon(iconKind, d.id === 'field' ? null : d) + '" alt="">' +
       '<div class="ci"><b>' + esc(d.name) + '</b><span class="meta">' + meta + '</span></div>' +
@@ -190,7 +196,7 @@
     const body = $('panelBody'), top = body.scrollTop;
     let h = '';
     if (panel === 'build') {
-      h = tabsHtml([{ id: 'land', label: 'Land' }, { id: 'trees', label: 'Bäume' }, { id: 'animals', label: 'Tiere' }, { id: 'deko', label: 'Deko' }], buildTab) +
+      h = tabsHtml([{ id: 'land', label: 'Land' }, { id: 'trees', label: 'Bäume' }, { id: 'animals', label: 'Tiere' }, { id: 'produktion', label: 'Produktion' }, { id: 'deko', label: 'Deko' }], buildTab) +
         buildItems(buildTab).map(cardHtml).join('');
     } else if (panel === 'upgrades') h = upgradesHtml();
     else h = infoHtml();
@@ -236,7 +242,7 @@
     switch (act) {
       case 'pick': {
         const kind = el.dataset.kind;
-        const def = kind === 'field' ? FIELD_DEF : FF.find(kind === 'tree' ? 'trees' : kind === 'pen' ? 'animals' : 'decor', id);
+        const def = kind === 'field' ? FIELD_DEF : FF.find(kind === 'tree' ? 'trees' : kind === 'pen' ? 'animals' : kind === 'factory' ? 'factories' : kind === 'green' ? 'greenhouses' : 'decor', id);
         if (!def) return;
         lastSel = { kind: kind, def: def };
         FF.setTool('build', lastSel);

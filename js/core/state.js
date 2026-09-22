@@ -64,6 +64,8 @@
     switch (e.k) {
       case 'tree': return FF.find('trees', e.t);
       case 'pen': return FF.find('animals', e.t);
+      case 'factory': return FF.find('factories', e.t);
+      case 'green': return FF.find('greenhouses', e.t);
       case 'decor': return FF.find('decor', e.t);
       default: return null;
     }
@@ -104,6 +106,8 @@
       if (!e || typeof e.x !== 'number' || typeof e.y !== 'number') return false;
       if (e.k === 'tree') { const d = FF.find('trees', e.t); if (!d) return false; e.w = 1; e.h = 1; return true; }
       if (e.k === 'pen') { const d = FF.find('animals', e.t); if (!d) return false; e.w = d.w; e.h = d.h; return true; }
+      if (e.k === 'factory') { const d = FF.find('factories', e.t); if (!d) return false; e.w = d.w; e.h = d.h; return true; }
+      if (e.k === 'green') { const d = FF.find('greenhouses', e.t); if (!d) return false; e.w = d.w; e.h = d.h; return true; }
       if (e.k === 'decor') { if (!FF.find('decor', e.t)) return false; e.w = 1; e.h = 1; return true; }
       if (e.k === 'field') { e.w = 1; e.h = 1; if (e.c && !FF.find('crops', e.c)) { e.c = null; e.p = 0; } return true; }
       return e.k === 'house' || e.k === 'barn';

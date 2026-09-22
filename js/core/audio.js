@@ -204,7 +204,12 @@
     else stopMusic();
     FF.emit('audio');
   };
-  A.setSfx = function (on) { A.sfxOn = !!on; saveSettings(); FF.emit('audio'); };
+  A.setSfx = function (on) {
+    A.sfxOn = !!on; saveSettings();
+    if (!on) A.rainStop();
+    else if (FF.weather && FF.weather.active) A.rainStart();
+    FF.emit('audio');
+  };
 
   /* ---------- Effekte ---------- */
   A.sfx = function (name, arg) {
@@ -247,7 +252,36 @@
         tone(ctx, d, t, 'sine', 300, 900, 0.12, 0.08);
         tone(ctx, d, t + 0.12, 'sine', 900, 250, 0.25, 0.08);
         break;
+      case 'thunder':
+        noiseBurst(ctx, d, t, 1.1, 0.2, 0, 240);
+        tone(ctx, d, t, 'sine', 58, 38, 1.0, 0.16);
+        tone(ctx, d, t + 0.05, 'sine', 90, 50, 0.5, 0.08);
+        break;
     }
+  };
+
+  /* ---------- Regen-Dauerklang (Start/Stopp statt einmaligem Effekt) ---------- */
+  let rainSrc = null, rainGain = null;
+  A.rainStart = function () {
+    if (!A.ready || !A.sfxOn || A.ctx.state !== 'running' || rainSrc) return;
+    const ctx = A.ctx;
+    const src = ctx.createBufferSource();
+    src.buffer = getNoise(ctx); src.loop = true;
+    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2400; f.Q.value = 0.5;
+    const g = ctx.createGain(); g.gain.value = 0.0001;
+    src.connect(f); f.connect(g); g.connect(chain.sfx);
+    src.start();
+    g.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 2);
+    rainSrc = src; rainGain = g;
+  };
+  A.rainStop = function () {
+    if (!rainSrc || !A.ctx) return;
+    const ctx = A.ctx, node = rainSrc, g = rainGain;
+    rainSrc = null; rainGain = null;
+    g.gain.cancelScheduledValues(ctx.currentTime);
+    g.gain.setValueAtTime(g.gain.value, ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
+    setTimeout(function () { try { node.stop(); } catch (e) { /* egal */ } }, 1400);
   };
 
   /* ---------- Test: eine Minute Musik ohne Lautsprecher rendern ---------- */

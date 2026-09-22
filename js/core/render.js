@@ -130,6 +130,42 @@
     }
   }
 
+  function stockLabel(e, px, py, w, labels) {
+    if (e.n <= 0) return;
+    const bx = px + Math.floor(w / 2) - 6, by = py - 8;
+    ctx.drawImage(art.coin(), bx, by);
+    labels.push({ x: bx + 12, y: by + 6, text: String(e.n) });
+  }
+
+  /* Produktionsstätte: Gebäude + kleiner Rauch aus dem Schornstein */
+  function drawFactory(e, d, t, labels) {
+    const px = e.x * T, py = e.y * T, w = e.w * T, h = e.h * T;
+    ctx.drawImage(art.factory(d), px, py);
+    const baseX = px + w - 5, baseY = py + Math.round(h * 0.36) - 6;
+    for (let i = 0; i < 3; i++) {
+      const ph = (t * 0.6 + i * 0.9) % 3;
+      const a = Math.max(0, 0.3 - ph * 0.09);
+      if (a <= 0) continue;
+      const sx = baseX + Math.sin(t * 0.7 + i) * 2, sy = baseY - ph * 9;
+      const r = 2 + ph;
+      ctx.fillStyle = 'rgba(215,215,215,' + a.toFixed(2) + ')';
+      ctx.fillRect(Math.round(sx - r / 2), Math.round(sy - r / 2), Math.round(r), Math.round(r));
+    }
+    stockLabel(e, px, py, w, labels);
+  }
+
+  /* Gewächshaus: Gebäude + sanftes Glas-Schimmern */
+  function drawGreenhouse(e, d, t, labels) {
+    const px = e.x * T, py = e.y * T, w = e.w * T, h = e.h * T;
+    ctx.drawImage(art.greenhouse(d), px, py);
+    ctx.globalAlpha = 0.16 + Math.sin(t * 1.4 + e.x) * 0.06;
+    ctx.fillStyle = '#eaffff';
+    const gy = py + Math.round(h * 0.32);
+    ctx.fillRect(px + 2, gy, w - 4, py + h - 2 - gy);
+    ctx.globalAlpha = 1;
+    stockLabel(e, px, py, w, labels);
+  }
+
   /* Wo landet ein Gebäude, wenn man auf Kachel (tx,ty) zeigt? (Mitte = Zeiger) */
   R.anchor = function (tx, ty) {
     const sel = FF.buildSel;
@@ -147,6 +183,8 @@
     if (sel.kind === 'field') spr = art.field(null, 0);
     else if (sel.kind === 'tree') spr = art.tree(sel.def, true);
     else if (sel.kind === 'pen') spr = art.pen(sel.def);
+    else if (sel.kind === 'factory') spr = art.factory(sel.def);
+    else if (sel.kind === 'green') spr = art.greenhouse(sel.def);
     else spr = art.decor(sel.def, 0);
     ctx.globalAlpha = 0.7;
     ctx.drawImage(spr, x0 * T, y0 * T);
@@ -197,13 +235,15 @@
           const d = FF.find('decor', e.t);
           if (!d) break;
           const ty = d.art.type;
-          if (ty === 'path') ctx.drawImage(art.decor(d, neighborMask(e, 'path')), e.x * T, e.y * T);
+          if (ty === 'path' || ty === 'water') ctx.drawImage(art.decor(d, neighborMask(e, ty)), e.x * T, e.y * T);
           else if (ty === 'flowers') ctx.drawImage(art.decor(d, 0), e.x * T, e.y * T);
           else objs.push({ y: (e.y + 1) * T, e: e, d: d });
           break;
         }
         case 'tree': objs.push({ y: (e.y + 1) * T, e: e, d: FF.find('trees', e.t) }); break;
         case 'pen': objs.push({ y: (e.y + e.h) * T, e: e, d: FF.find('animals', e.t) }); break;
+        case 'factory': objs.push({ y: (e.y + e.h) * T, e: e, d: FF.find('factories', e.t) }); break;
+        case 'green': objs.push({ y: (e.y + e.h) * T, e: e, d: FF.find('greenhouses', e.t) }); break;
         case 'house': case 'barn': objs.push({ y: (e.y + e.h) * T, e: e }); break;
       }
     }
@@ -272,6 +312,8 @@
       switch (e.k) {
         case 'tree': if (o.d) ctx.drawImage(art.tree(o.d, e.n > 0), e.x * T, e.y * T); break;
         case 'pen': if (o.d) drawPen(e, o.d, t, labels); break;
+        case 'factory': if (o.d) drawFactory(e, o.d, t, labels); break;
+        case 'green': if (o.d) drawGreenhouse(e, o.d, t, labels); break;
         case 'house': ctx.drawImage(art.house(), e.x * T, e.y * T); break;
         case 'barn': ctx.drawImage(art.barn(), e.x * T, e.y * T); break;
         case 'decor': if (o.d) ctx.drawImage(art.decor(o.d, o.d.art.type === 'fence' ? neighborMask(e, 'fence') : 0), e.x * T, e.y * T); break;
@@ -291,8 +333,11 @@
       }
     }
 
-    // ---- Bildschirm-Ebene (Text) ----
+    // ---- Wetter (Regen/Blitz), Bildschirm-Ebene ----
     ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (FF.weather) FF.weather.draw(ctx, W, H, pr, t);
+
+    // ---- Bildschirm-Ebene (Text) ----
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const fs = Math.round(12 * pr * U.clamp(z / 3, 0.9, 1.4));
     ctx.font = '700 ' + fs + 'px "Pixelify Sans", "Trebuchet MS", sans-serif';

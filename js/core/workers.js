@@ -45,7 +45,7 @@
   function isReady(e) {
     if (!e || FF.entAt(e.x, e.y) !== e) return false;
     if (e.k === 'field') return FF.fieldReady(e) || canSow(e);
-    if (e.k === 'tree' || e.k === 'pen') return e.n > 0;
+    if (e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green') return e.n > 0;
     return false;
   }
 
@@ -61,7 +61,7 @@
     let best = null, bd = Infinity;
     for (let i = 0; i < ents.length; i++) {
       const e = ents[i];
-      if ((e.k !== 'field' && e.k !== 'tree' && e.k !== 'pen') || reserved.has(e) || !isReady(e)) continue;
+      if ((e.k !== 'field' && e.k !== 'tree' && e.k !== 'pen' && e.k !== 'factory' && e.k !== 'green') || reserved.has(e) || !isReady(e)) continue;
       const p = targetPoint(e);
       const d = (p.x - w.x) * (p.x - w.x) + (p.y - w.y) * (p.y - w.y);
       if (d < bd) { bd = d; best = e; }

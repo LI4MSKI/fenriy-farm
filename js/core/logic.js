@@ -21,6 +21,14 @@
         case 'workerspeed': M.workerSpeed *= v; break;
       }
     });
+    if (S && S.ents) {
+      for (let i = 0; i < S.ents.length; i++) {
+        const e = S.ents[i];
+        if (e.k !== 'green') continue;
+        const gd = FF.find('greenhouses', e.t);
+        if (gd && gd.growth) M.growth *= (1 + gd.growth);
+      }
+    }
     FF.M = M;
     if (FF.syncWorkers) FF.syncWorkers();
   };
@@ -64,18 +72,19 @@
 
   FF.advance = function (dt) {
     const S = FF.state, g = FF.M.growth, cap = FF.M.capacity;
+    const wm = FF.weather ? FF.weather.mult : 1;
     const ents = S.ents;
     for (let i = 0; i < ents.length; i++) {
       const e = ents[i];
       if (e.k === 'field') {
         if (!e.c) continue;
         const c = FF.find('crops', e.c);
-        if (c && e.p < c.time) e.p = Math.min(c.time, e.p + dt * g);
-      } else if (e.k === 'tree' || e.k === 'pen') {
-        const d = e.k === 'tree' ? FF.find('trees', e.t) : FF.find('animals', e.t);
+        if (c && e.p < c.time) e.p = Math.min(c.time, e.p + dt * g * wm);
+      } else if (e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green') {
+        const d = e.k === 'tree' ? FF.find('trees', e.t) : e.k === 'pen' ? FF.find('animals', e.t) : e.k === 'factory' ? FF.find('factories', e.t) : FF.find('greenhouses', e.t);
         if (!d) continue;
         if (e.n >= cap) { e.p = 0; continue; }
-        const tot = e.p + dt * g;
+        const tot = e.p + dt * g * wm;
         const add = Math.floor(tot / d.interval);
         e.n = Math.min(cap, e.n + add);
         e.p = e.n >= cap ? 0 : tot - add * d.interval;
@@ -154,7 +163,7 @@
       }
       return null;
     }
-    if ((e.k === 'tree' || e.k === 'pen') && e.n > 0) { FF.collect(e); return 'collect'; }
+    if ((e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green') && e.n > 0) { FF.collect(e); return 'collect'; }
     return null;
   };
 
@@ -166,7 +175,7 @@
     for (let i = 0; i < ents.length; i++) {
       const e = ents[i];
       if (e.k === 'field' && FF.fieldReady(e)) { total += FF.harvestField(e, true); count++; }
-      else if ((e.k === 'tree' || e.k === 'pen') && e.n > 0) { total += FF.collect(e, true); count++; }
+      else if ((e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green') && e.n > 0) { total += FF.collect(e, true); count++; }
       else if (e.k === 'field' && !e.c && FF.M.autosow && e.last) {
         const c = FF.find('crops', e.last);
         if (c && S.crops[e.last] && S.money >= c.seed) { S.money -= c.seed; e.c = e.last; e.p = 0; }
@@ -178,7 +187,22 @@
 
   /* ---------- Bauen ---------- */
   FF.itemCost = function (kind, def) { return kind === 'field' ? C.fieldCost : def.cost; };
-  FF.itemSize = function (kind, def) { return kind === 'pen' ? { w: def.w, h: def.h } : { w: 1, h: 1 }; };
+  FF.itemSize = function (kind, def) { return (kind === 'pen' || kind === 'factory' || kind === 'green') ? { w: def.w, h: def.h } : { w: 1, h: 1 }; };
+
+  /* Voraussetzung für Produktionsstätten (z.B. erst Weizen freischalten oder Schweinestall bauen) */
+  FF.factoryReady = function (f) {
+    if (!f.need) return true;
+    const S = FF.state;
+    if (f.need.crop) return !!S.crops[f.need.crop];
+    if (f.need.animal) return S.ents.some(function (e) { return e.k === 'pen' && e.t === f.need.animal; });
+    return true;
+  };
+  FF.factoryNeedText = function (f) {
+    if (!f.need) return '';
+    if (f.need.crop) { const c = FF.find('crops', f.need.crop); return c ? c.name + ' freischalten' : ''; }
+    if (f.need.animal) { const a = FF.find('animals', f.need.animal); return a ? a.name + ' bauen' : ''; }
+    return '';
+  };
 
   FF.canPlace = function (kind, def, x, y) {
     const s = FF.itemSize(kind, def);
@@ -195,13 +219,14 @@
     const S = FF.state;
     const why = FF.canPlace(kind, def, x, y);
     if (why) return why;
+    if (kind === 'factory' && !FF.factoryReady(def)) return 'Zuerst nötig: ' + FF.factoryNeedText(def);
     const cost = FF.itemCost(kind, def);
     if (S.money < cost) return 'Nicht genug Fenriy (' + U.fmt(cost) + ')';
     const s = FF.itemSize(kind, def);
     let e;
     if (kind === 'field') e = { k: 'field', x: x, y: y, w: 1, h: 1, c: null, p: 0, last: null };
     else if (kind === 'tree') e = { k: 'tree', x: x, y: y, w: 1, h: 1, t: def.id, p: 0, n: 0 };
-    else if (kind === 'pen') e = { k: 'pen', x: x, y: y, w: s.w, h: s.h, t: def.id, p: 0, n: 0 };
+    else if (kind === 'pen' || kind === 'factory' || kind === 'green') e = { k: kind, x: x, y: y, w: s.w, h: s.h, t: def.id, p: 0, n: 0 };
     else e = { k: 'decor', x: x, y: y, w: 1, h: 1, t: def.id };
     S.money -= cost;
     S.ents.push(e);
@@ -211,6 +236,7 @@
       const c = FF.find('crops', S.seed);
       if (c && S.money >= c.seed) FF.plant(e, S.seed);
     }
+    if (kind === 'green') FF.recalc();
     return null;
   };
 
@@ -223,11 +249,12 @@
     if (e.k === 'field') cost = C.fieldCost;
     else { const d = FF.defOf(e); cost = d ? d.cost : 0; }
     // Vorrat noch schnell mitnehmen
-    if ((e.k === 'tree' || e.k === 'pen') && e.n > 0) FF.collect(e);
+    if ((e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green') && e.n > 0) FF.collect(e);
     const refund = Math.floor(cost * C.refund);
     S.money += refund;
     FF.setGrid(e, undefined);
     S.ents.splice(S.ents.indexOf(e), 1);
+    if (e.k === 'green') FF.recalc();
     if (refund > 0) FF.emit('float', { x: tx * C.tile + 8, y: ty * C.tile, text: '+' + U.fmt(refund), col: '#b8e8ff' });
     return null;
   };
@@ -283,7 +310,7 @@
   FF.itemRate = function (kind, def) {
     const g = FF.M.growth, pm = FF.M.price;
     if (kind === 'crop') return (def.yield * pm - def.seed) / (def.time / g);
-    if (kind === 'tree' || kind === 'pen') return def.value * pm / (def.interval / g);
+    if (kind === 'tree' || kind === 'pen' || kind === 'factory' || kind === 'green') return def.value * pm / (def.interval / g);
     return 0;
   };
 

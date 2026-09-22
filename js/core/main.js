@@ -63,6 +63,7 @@
       dt = Math.min(dt, 0.25);
       time += dt;
       if (FF.cutscene.active) FF.cutscene.update(dt);
+      else FF.weather.update(dt);
       FF.update(dt);
       FF.updateFarmer(dt);
       FF.updateWorkers(dt);

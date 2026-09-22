@@ -46,56 +46,77 @@
   };
 
   /* ---------- Pflanzen ---------- */
+  function shadow(g, cx, oy, w) { R(g, 'rgba(20,15,5,0.18)', cx - Math.ceil(w / 2), oy + 8, w, 1); }
   function cell(g, a, stage, ox, oy) {
     const cx = ox + 4;
     const G = a.leaf || '#3fa53a';
+    const GL = U.shade(G, 32), GD = U.shade(G, -28);
     const big = !!a.big;
     if (stage === 0) {
-      R(g, '#e8d9a0', cx - 1, oy + 6); R(g, '#e8d9a0', cx + 1, oy + 7); return;
+      R(g, '#e8d9a0', cx - 1, oy + 6); R(g, '#e8d9a0', cx + 1, oy + 7); R(g, GL, cx, oy + 6); return;
     }
     switch (a.type) {
       case 'tall': {
         const h = big ? [0, 3, 5, 6][stage] : [0, 2, 3, 5][stage];
+        shadow(g, cx, oy, big ? 5 : 3);
         const col = (stage === 3 && a.stem) ? a.stem : G;
         R(g, col, cx, oy + 8 - h, 1, h);
-        if (stage >= 2) { R(g, G, cx - 1, oy + 8 - h + 2); R(g, G, cx + 1, oy + 8 - h + 3); }
+        if (stage >= 2) {
+          R(g, GL, cx - 1, oy + 8 - h + 2); R(g, GD, cx + 1, oy + 8 - h + 3);
+          if (big) R(g, GL, cx + 1, oy + 8 - h + 1);
+        }
         if (stage === 3) {
-          if (big) { R(g, a.fruit, cx + 1, oy + 3, 2, 3); R(g, U.shade(a.fruit, -40), cx + 2, oy + 3, 1, 3); R(g, G, cx + 1, oy + 6); }
-          else { R(g, a.fruit, cx - 1, oy + 8 - h - 1, 3, 2); R(g, a.fruit, cx, oy + 8 - h - 2); }
+          if (big) {
+            R(g, a.fruit, cx + 1, oy + 3, 2, 3); R(g, U.shade(a.fruit, -40), cx + 2, oy + 3, 1, 3);
+            R(g, U.shade(a.fruit, 65), cx + 1, oy + 3); R(g, GD, cx + 1, oy + 6);
+          } else {
+            R(g, a.fruit, cx - 1, oy + 8 - h - 1, 3, 2); R(g, U.shade(a.fruit, 70), cx - 1, oy + 8 - h - 1);
+            R(g, U.shade(a.fruit, -35), cx + 1, oy + 8 - h); R(g, a.fruit, cx, oy + 8 - h - 2);
+          }
         }
         break;
       }
       case 'root': {
-        if (stage === 1) R(g, G, cx, oy + 6, 1, 2);
+        if (stage === 1) { shadow(g, cx, oy, 2); R(g, G, cx, oy + 6, 1, 2); R(g, GL, cx, oy + 6); }
         else {
-          R(g, G, cx - 1, oy + 5, 1, 3); R(g, G, cx, oy + 3 + (stage === 3 ? 0 : 1), 1, 5); R(g, G, cx + 1, oy + 5, 1, 3);
-          if (stage === 3) { R(g, a.fruit, cx - 1, oy + 7, 3, 1); R(g, U.shade(a.fruit, -35), cx - 1, oy + 7); }
+          shadow(g, cx, oy, 3);
+          R(g, GD, cx - 1, oy + 5, 1, 3); R(g, G, cx, oy + 3 + (stage === 3 ? 0 : 1), 1, 5); R(g, GL, cx + 1, oy + 5, 1, 3);
+          R(g, GL, cx, oy + 3 + (stage === 3 ? 0 : 1));
+          if (stage === 3) {
+            R(g, a.fruit, cx - 1, oy + 7, 3, 1); R(g, U.shade(a.fruit, 55), cx - 1, oy + 7); R(g, U.shade(a.fruit, -35), cx + 1, oy + 7);
+          }
         }
         break;
       }
       case 'bush': {
-        if (stage === 1) R(g, G, cx - 1, oy + 6, 2, 2);
-        else if (stage === 2) { R(g, G, cx - 2, oy + 5, 4, 3); R(g, U.shade(G, 25), cx - 1, oy + 4, 2, 1); }
-        else {
-          R(g, G, cx - 3, oy + 4, 6, 4); R(g, U.shade(G, 25), cx - 2, oy + 3, 3, 1); R(g, U.shade(G, -30), cx - 3, oy + 7, 6, 1);
+        if (stage === 1) { shadow(g, cx, oy, 2); R(g, G, cx - 1, oy + 6, 2, 2); R(g, GL, cx - 1, oy + 6); }
+        else if (stage === 2) {
+          shadow(g, cx, oy, 4);
+          R(g, G, cx - 2, oy + 5, 4, 3); R(g, GL, cx - 1, oy + 4, 2, 1); R(g, GD, cx - 2, oy + 7, 4, 1);
+        } else {
+          shadow(g, cx, oy, 6);
+          R(g, G, cx - 3, oy + 4, 6, 4); R(g, GL, cx - 2, oy + 3, 3, 1); R(g, GD, cx - 3, oy + 7, 6, 1);
+          R(g, GL, cx + 1, oy + 4, 2, 1);
           if (big) {
             R(g, a.fruit, cx - 3, oy + 5, 3, 3); R(g, a.fruit, cx + 1, oy + 4, 3, 3);
-            R(g, U.shade(a.fruit, 60), cx - 3, oy + 5); R(g, U.shade(a.fruit, 60), cx + 1, oy + 4);
-            R(g, U.shade(a.fruit, -50), cx - 1, oy + 7); R(g, U.shade(a.fruit, -50), cx + 3, oy + 6);
+            R(g, U.shade(a.fruit, 70), cx - 3, oy + 5); R(g, U.shade(a.fruit, 70), cx + 1, oy + 4);
+            R(g, U.shade(a.fruit, -55), cx - 1, oy + 7); R(g, U.shade(a.fruit, -55), cx + 3, oy + 6);
           } else {
             R(g, a.fruit, cx - 2, oy + 5); R(g, a.fruit, cx + 1, oy + 6); R(g, a.fruit, cx, oy + 4); R(g, a.fruit, cx + 2, oy + 5);
+            R(g, U.shade(a.fruit, 75), cx - 2, oy + 5); R(g, U.shade(a.fruit, 75), cx, oy + 4);
           }
         }
         break;
       }
       case 'vine': {
-        R(g, '#7a5a33', cx, oy + 2, 1, 6);
-        if (stage === 1) R(g, G, cx + 1, oy + 5);
+        shadow(g, cx, oy, 4);
+        R(g, '#7a5a33', cx, oy + 2, 1, 6); R(g, U.shade('#7a5a33', 30), cx, oy + 2, 1, 1);
+        if (stage === 1) { R(g, G, cx + 1, oy + 5); R(g, GL, cx + 1, oy + 5); }
         else {
-          R(g, G, cx - 1, oy + 2, 3, 2); R(g, G, cx - 2, oy + 4, 2, 1); R(g, G, cx + 1, oy + 4, 2, 1);
+          R(g, G, cx - 1, oy + 2, 3, 2); R(g, GL, cx - 2, oy + 4, 2, 1); R(g, GD, cx + 1, oy + 4, 2, 1);
           if (stage === 3) {
             R(g, a.fruit, cx - 1, oy + 5, 3, 1); R(g, a.fruit, cx - 1, oy + 6, 2, 1); R(g, a.fruit, cx, oy + 7);
-            R(g, U.shade(a.fruit, 70), cx - 1, oy + 5);
+            R(g, U.shade(a.fruit, 75), cx - 1, oy + 5); R(g, U.shade(a.fruit, -40), cx + 1, oy + 6);
           }
         }
         break;
@@ -374,7 +395,7 @@
   art.decor = function (def, mask) {
     const a = def.art;
     mask = mask || 0;
-    const key = 'decor_' + def.id + (a.type === 'path' || a.type === 'fence' ? '_' + mask : '');
+    const key = 'decor_' + def.id + (a.type === 'path' || a.type === 'fence' || a.type === 'water' ? '_' + mask : '');
     return cached(key, 16, 16, function (g) {
       switch (a.type) {
         case 'path': {
@@ -421,7 +442,65 @@
           R(g, '#c9a03a', 2, 13, 12, 1);
           break;
         }
+        case 'water': {
+          R(g, a.dark, 0, 0, 16, 16);
+          R(g, a.base, 1, 1, 14, 14);
+          const rnd = U.seeded(def.id.length * 31 + 9);
+          for (let y = 2; y < 14; y += 3) {
+            const off = Math.floor(rnd() * 3);
+            R(g, U.shade(a.base, 22), 2 + off, y, 5, 1);
+            R(g, U.shade(a.base, -14), 9 - off, y + 1, 5, 1);
+          }
+          [[3, 4], [11, 9], [6, 12]].forEach(function (p) { R(g, 'rgba(255,255,255,0.5)', p[0], p[1], 2, 1); });
+          edges(g, mask, a.dark);
+          break;
+        }
       }
+    });
+  };
+
+  /* ---------- Produktionsstätten & Gewächshäuser (Gebäude, w×h Kacheln) ---------- */
+  function productIcon(g, icon, x, y) {
+    switch (icon) {
+      case 'bread': R(g, '#d9a054', x, y, 6, 4); R(g, '#f2c374', x + 1, y, 4, 1); R(g, '#8a5a24', x, y + 3, 6, 1); break;
+      case 'meat': R(g, '#c0392b', x, y, 6, 4); R(g, '#e8a0a0', x + 1, y, 3, 1); R(g, '#7a2318', x, y + 3, 6, 1); break;
+      case 'cheese': R(g, '#f2c94c', x, y, 6, 4); R(g, '#fff3b0', x + 1, y, 2, 1); R(g, '#c99a1a', x, y + 3, 6, 1); break;
+      default: R(g, '#cccccc', x, y, 6, 4);
+    }
+  }
+  art.factory = function (def) {
+    const a = def.art, w = def.w * 16, h = def.h * 16, ry = Math.round(h * 0.36);
+    return cached('factory_' + def.id, w, h, function (g) {
+      R(g, 'rgba(0,0,0,0.15)', 2, h - 3, w - 4, 2);
+      R(g, a.wall, 1, ry, w - 2, h - ry - 2);
+      for (let x = 2; x < w - 2; x += 2) R(g, U.shade(a.wall, (x / 2) % 2 ? 10 : -10), x, ry + 1, 1, h - ry - 3);
+      R(g, U.shade(a.wall, -30), 1, h - 4, w - 2, 2);
+      R(g, a.roof, 0, ry - 3, w, 4);
+      R(g, U.shade(a.roof, -30), 0, ry, w, 1);
+      R(g, U.shade(a.roof, 25), 0, ry - 3, w, 1);
+      const dw = 6, dx = Math.round(w / 2 - dw / 2);
+      R(g, '#5a3a22', dx, h - 10, dw, 9); R(g, '#3a2414', dx, h - 2, dw, 1); R(g, '#8a5a34', dx + 2, h - 9, 1, 7);
+      R(g, '#bfe6ff', 3, h - 9, 3, 3); R(g, '#7ab8dd', 3, h - 9, 3, 1);
+      R(g, '#bfe6ff', w - 6, h - 9, 3, 3); R(g, '#7ab8dd', w - 6, h - 9, 3, 1);
+      R(g, U.shade(a.wall, -20), w - 8, ry - 10, 4, 8); R(g, U.shade(a.wall, -40), w - 8, ry - 11, 4, 1);
+      R(g, '#fff8e0', Math.round(w / 2 - 4), ry + 2, 8, 6); R(g, U.shade('#fff8e0', -40), Math.round(w / 2 - 4), ry + 7, 8, 1);
+      productIcon(g, a.icon, Math.round(w / 2 - 3), ry + 3);
+    });
+  };
+  art.greenhouse = function (def) {
+    const a = def.art, w = def.w * 16, h = def.h * 16, ry = Math.round(h * 0.3);
+    return cached('greenhouse_' + def.id, w, h, function (g) {
+      R(g, 'rgba(0,0,0,0.15)', 2, h - 3, w - 4, 2);
+      R(g, a.frame, 0, ry, w, 3);
+      R(g, U.shade(a.frame, -25), 0, ry, w, 1);
+      R(g, 'rgba(185,228,255,0.55)', 1, ry + 3, w - 2, h - ry - 5);
+      R(g, 'rgba(255,255,255,0.35)', 1, ry + 3, w - 2, 1);
+      for (let x = 3; x < w - 1; x += 5) R(g, a.frame, x, ry + 3, 1, h - ry - 5);
+      for (let y = ry + 3; y < h - 2; y += 5) R(g, a.frame, 1, y, w - 2, 1);
+      R(g, a.frame, 0, h - 3, w, 2);
+      ['#3f9b3a', '#4ba83f', '#58b94a'].forEach(function (c, i) {
+        R(g, c, 3 + i * (w / 3), h - 8, 3, 6); R(g, U.shade(c, 40), 3 + i * (w / 3), h - 8, 1, 1);
+      });
     });
   };
 
@@ -456,7 +535,9 @@
       case 'crop': src = art.cropIcon(def); break;
       case 'tree': src = art.tree(def, true); break;
       case 'animal': src = art.pen(def); break;
-      case 'decor': src = art.decor(def, def.art.type === 'path' ? 15 : def.art.type === 'fence' ? 10 : 0); break;
+      case 'decor': src = art.decor(def, def.art.type === 'path' ? 15 : def.art.type === 'fence' ? 10 : def.art.type === 'water' ? 15 : 0); break;
+      case 'factory': src = art.factory(def); break;
+      case 'green': src = art.greenhouse(def); break;
       case 'field': src = art.field(null, 0); break;
       case 'house': src = art.house(); break;
       case 'barn': src = art.barn(); break;
