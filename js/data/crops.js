@@ -15,11 +15,17 @@ FF.content.crops.push(
   { id: 'carrot',  name: 'Karotte',     unlock: 100,      seed: 3,      time: 20,  yield: 13,
     art: { type: 'root', fruit: '#f28a1e', leaf: '#3fa53a' } },
 
+  { id: 'lettuce', name: 'Salat',       unlock: 400,      seed: 6,      time: 25,  yield: 22,
+    art: { type: 'bush', fruit: '#8fd05a', leaf: '#4fa83f' } },
+
   { id: 'potato',  name: 'Kartoffel',   unlock: 800,      seed: 10,     time: 40,  yield: 60,
     art: { type: 'root', fruit: '#c9a15a', leaf: '#4ba83f' } },
 
   { id: 'tomato',  name: 'Tomate',      unlock: 6000,     seed: 30,     time: 60,  yield: 190,
     art: { type: 'bush', fruit: '#e63b2e', leaf: '#3c9a3c' } },
+
+  { id: 'strawberry', name: 'Erdbeere', unlock: 18000,    seed: 50,     time: 55,  yield: 230,
+    art: { type: 'bush', fruit: '#e0245a', leaf: '#3f9b3a' } },
 
   { id: 'corn',    name: 'Mais',        unlock: 45000,    seed: 100,    time: 90,  yield: 550,
     art: { type: 'tall', stem: '#4fa83f', fruit: '#f7dc3b', leaf: '#3c9a3c', big: true } },
@@ -31,5 +37,8 @@ FF.content.crops.push(
     art: { type: 'vine', fruit: '#7a2fb5', leaf: '#3c9a3c' } },
 
   { id: 'crystal', name: 'Fenriy-Frucht', unlock: 25000000, seed: 4000,   time: 240, yield: 11000,
-    art: { type: 'bush', fruit: '#4fe3ff', leaf: '#2aa6a0', big: true } }
+    art: { type: 'bush', fruit: '#4fe3ff', leaf: '#2aa6a0', big: true } },
+
+  { id: 'starfruit', name: 'Sternfrucht', unlock: 80000000, seed: 10000, time: 280, yield: 26000,
+    art: { type: 'vine', fruit: '#ffe066', leaf: '#2aa6a0' } }
 );

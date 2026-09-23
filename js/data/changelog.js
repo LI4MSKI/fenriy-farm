@@ -1,5 +1,11 @@
 /* NEUIGKEITEN - neueste Version zuerst */
 FF.content.changelog.push(
+  { version: '0.4.0', date: '2026-09-23', notes: [
+    'Neu: Jahreszeiten! Frühling, Sommer, Herbst und Winter wechseln sich ab, färben die Farm um und beeinflussen leicht das Wachstum im Freien (Gewächshäuser & Produktionsstätten sind davon nicht betroffen).',
+    'Neu: Zufällige Ereignisse – ab und zu erscheint kurz ein reisender Händler, eine Goldene Stunde oder ein Schatzfund. Einfach rechtzeitig anklicken!',
+    'Neu: 3 weitere Pflanzen (Salat, Erdbeere, Sternfrucht) und 2 weitere Tierfarmen (Entenstall, Ziegenweide).',
+    'Neu: Bestenliste im Menü (Auftrag & Menü). Muss vom Betreiber der Seite erst mit einem kleinen Server verbunden werden.'
+  ] },
   { version: '0.3.0', date: '2026-09-22', notes: [
     'Neu: Flüsse zum Bauen (unter "Land" in der Deko).',
     'Neu: Pflanzen wachsen mit mehr Farbe, Schattierung und Glanzlichtern.',

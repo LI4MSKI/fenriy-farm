@@ -20,6 +20,11 @@ FF.config = {
   refund: 0.5,               // Rückerstattung beim Abreißen
   offlineCapHours: 8,        // So lange wächst alles maximal, wenn das Spiel geschlossen ist
 
+  /* Adresse des Bestenlisten-Servers (siehe server/README.md). Leer lassen = Bestenliste im Spiel
+   * zeigt einen Hinweis statt Rangliste. Nach dem Deploy hier die URL eintragen, z.B.
+   * 'https://fenriy-farm-server.onrender.com' (OHNE Schrägstrich am Ende). */
+  leaderboardUrl: '',
+
   /* Preis für das n-te gekaufte Grundstück (n = 1 ... 24) */
   plotPrice: function (n) {
     return FF.config.nice(1000 * Math.pow(2.15, n - 1));
