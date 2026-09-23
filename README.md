@@ -66,13 +66,15 @@ Vorhandene Effekte: `harvester`, `autosow`, `growth`, `price`, `capacity`, `work
 
 Ein Fluss ist ein Deko-Eintrag mit `art.type: 'water'` (verbindet sich wie ein Weg mit Nachbarkacheln, plus animiertes Schimmern beim Zeichnen, siehe `waterShimmer()` in `js/core/render.js`). Wege (`'path'`), Zäune (`'fence'`) und Blumenbeete (`'flowers'`) unterstützen mehrere Farbvarianten als eigene Einträge (z. B. Kiesweg, Pflasterweg, Weißer Zaun, Sommerblumen). Eigenständige Deko wie Heuballen, Laterne, Steinhaufen, Zierstrauch oder Vogelscheuche nutzt einen eigenen `art.type` mit passendem `case` in `art.decor` (`js/core/sprites.js`). Neue Deko genauso als Eintrag ergänzen.
 
-### Zufällige Welt & Flüsse (`js/core/worldgen.js`)
-
-Bei jedem **neuen** Spielstand (`FF.newState()`) erzeugt `FF.worldgen.makeRiver()` einen zufällig geschlängelten Fluss quer über die Karte (Start-Grundstück bleibt immer frei). Bestehende Spielstände sind davon nie betroffen – der Fluss wird nur einmal, bei der Erstellung eines neuen Spiels, generiert. Die Weltgröße steht in `js/data/config.js` bei `worldPlots` (Standard 9×9 Grundstücke).
-
-### Herumlaufende Wildtiere (`js/core/wildlife.js`)
+### Herumlaufende Wildtiere & Zaun-Tiere (`js/core/wildlife.js`)
 
 Schmetterlinge und Hasen (`FF.wildlife`) wandern rein dekorativ über die Karte, auch durch bebaute Felder. Sie werden nicht gespeichert, sondern bei jedem Laden/Neustart neu verteilt; die Anzahl skaliert automatisch mit der Anzahl gekaufter Grundstücke (`FF.syncWildlife()`, ausgelöst über das `'plot'`-Event). Neue Arten lassen sich in `art.wild()` (`js/core/sprites.js`) und der Typ-Liste in `wildlife.js` ergänzen.
+
+Baust du Zäune, fangen sich zusätzlich Hasen darin (`caught: true`, wandern nur noch in der Nähe gebauter Zaun-Kacheln). Das ist mit einer echten Gameplay-Mechanik verknüpft: `FF.corralCapacity()` (`js/core/logic.js`) berechnet aus der Anzahl gebauter Zaun-Kacheln (`FF.fenceCount()`, jede Zaun-Art zählt) die Anzahl Tierplätze (`C.fenceTilesPerAnimal` Kacheln je Tier, Obergrenze `C.corralMaxAnimals`). Die "Zaun-Tiere" produzieren wie eine Tierfarm passiv Vorrat (`S.corral`), der sich durch Klick auf einen beliebigen Zaun abholen lässt (`FF.collectCorral()`) – auch im Menü unter *Auftrag → Zaun-Tiere*. Werte (Intervall, Wert pro Einheit) stehen in `js/data/config.js`.
+
+### Wind & Pflanzentexturen (`js/core/sprites.js`, `js/core/render.js`)
+
+Gewachsene Feld-Pflanzen wiegen sanft im Wind: `art.field()` cached pro Pflanze/Wachstumsstadium vier leicht versetzte "Sway"-Bilder, `render.js` wählt beim Zeichnen anhand von Spielzeit und Kachel-Position das passende Bild aus (Geschwindigkeit über `C.windSwaySpeed` einstellbar). Die Pflanzenfarben in `cell()` haben zusätzliche helle Glanzlichter für mehr Farbe.
 
 ### Produktionsstätten (`js/data/factories.js`)
 
@@ -117,7 +119,7 @@ Der Monolog des alten Bauern steht in `buildSteps()`, jede `say('Alter Bauer', '
 ### Update veröffentlichen
 
 1. Änderungen in den Dateien machen.
-2. In `index.html` die Zeile `window.FF_BUILD = '0.5.0';` hochzählen (z. B. `'0.5.1'`). Dadurch laden alle Spieler automatisch die neuen Dateien statt der alten aus dem Browser-Cache.
+2. In `index.html` die Zeile `window.FF_BUILD = '0.6.0';` hochzählen (z. B. `'0.6.1'`). Dadurch laden alle Spieler automatisch die neuen Dateien statt der alten aus dem Browser-Cache.
 3. Einen Eintrag in `js/data/changelog.js` ergänzen.
 4. Dateien auf GitHub hochladen.
 
@@ -143,7 +145,7 @@ Ein Bot spielt das Spiel gierig durch und zeigt, wann er welche Meilensteine err
 index.html          Startseite, lädt alle Scripts (FF_BUILD = Version)
 css/style.css       Aussehen der Oberfläche
 js/data/            Spielinhalt (hier arbeitest du für Updates)
-js/core/            Spiel-Engine (Logik, Grafik, Eingabe, Oberfläche, Arbeiter, Musik, Einführung, Jahreszeiten, Ereignisse, Weltgenerierung, Wildtiere)
+js/core/            Spiel-Engine (Logik, Grafik, Eingabe, Oberfläche, Arbeiter, Musik, Einführung, Jahreszeiten, Ereignisse, Wildtiere & Zaun-Tiere)
 tools/balance-sim.js  Wirtschafts-Simulation
 server/              Optionaler Bestenlisten-Server (separat deployen, siehe server/README.md)
 ```
