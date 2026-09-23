@@ -72,6 +72,27 @@ img { image-rendering: pixelated; }
 .hud-float.go { animation: hudfloat 1.2s ease-out; }
 @keyframes hudfloat { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-22px); } }
 
+.hud-season {
+  display: flex; align-items: center; justify-content: center; padding: 8px 12px; flex: none;
+  font: 700 13px var(--font); letter-spacing: 0.03em;
+}
+.hud-season.s0 { background: rgba(90, 168, 60, 0.55); }
+.hud-season.s1 { background: rgba(40, 100, 24, 0.55); }
+.hud-season.s2 { background: rgba(176, 110, 30, 0.55); }
+.hud-season.s3 { background: rgba(70, 120, 160, 0.55); }
+
+#eventCard {
+  position: fixed; top: 76px; left: 50%; transform: translateX(-50%); z-index: 22; width: 240px; max-width: calc(100vw - 20px);
+  background: var(--dark); color: #fff8e8; border: 3px solid var(--gold-d); border-radius: 10px;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.4); padding: 10px 12px; text-align: center;
+  animation: toastin 0.2s ease-out;
+}
+#eventCard #eventTitle { font-weight: 700; font-size: 15px; color: var(--gold); }
+#eventCard #eventDesc { font-size: 13px; color: #cbb98a; margin: 3px 0 8px; }
+#eventCard .btn { width: 100%; padding: 8px; margin-bottom: 6px; }
+#eventCard .bar { height: 7px; }
+#eventCard .bar > i { background: var(--gold); }
+
 #zoomBtns { position: fixed; right: 10px; top: 76px; display: flex; flex-direction: column; gap: 8px; }
 
 /* ---------- Dock ---------- */
@@ -234,6 +255,8 @@ body.cutscene #skipIntro { display: block; }
   .goal-line { font-size: 12px; }
   #goalText { display: none; }
   #zoomBtns { top: 70px; }
+  #eventCard { top: 66px; }
+  .hud-season { padding: 6px 8px; font-size: 11px; }
   .btn { padding: 8px 9px; font-size: 14px; }
   #toolbar { gap: 5px; padding: 6px; }
   #toolbar .sep { display: none; }
