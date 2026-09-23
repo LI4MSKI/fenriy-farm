@@ -11,7 +11,7 @@
   FF.floats = [];
   R.ZOOMS = [2, 3, 4, 5, 6];
 
-  const ANIM = { chicken: [8, 8], pig: [12, 9], cow: [14, 11], sheep: [11, 10], alpaca: [11, 15], bee: [3, 4] };
+  const ANIM = { chicken: [8, 8], pig: [12, 9], cow: [14, 11], sheep: [11, 10], alpaca: [11, 15], bee: [3, 4], duck: [8, 6], goat: [12, 9] };
   const CLOUDS = [
     { x: 40, y: 90, rx: 60, ry: 22, sp: 4 }, { x: 300, y: 300, rx: 80, ry: 28, sp: 3 },
     { x: 520, y: 150, rx: 50, ry: 18, sp: 5 }, { x: 150, y: 500, rx: 70, ry: 24, sp: 3.5 },
@@ -333,8 +333,9 @@
       }
     }
 
-    // ---- Wetter (Regen/Blitz), Bildschirm-Ebene ----
+    // ---- Jahreszeit (z.B. Schneeflocken im Winter) & Wetter (Regen/Blitz), Bildschirm-Ebene ----
     ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (FF.season && FF.season.draw) FF.season.draw(ctx, W, H, pr, t);
     if (FF.weather) FF.weather.draw(ctx, W, H, pr, t);
 
     // ---- Bildschirm-Ebene (Text) ----

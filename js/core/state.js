@@ -29,7 +29,9 @@
       autoT: 0,
       stats: { harvests: 0, collected: 0, built: 0 },
       won: false,
-      seen: { intro: false }
+      seen: { intro: false },
+      season: { idx: 0, t: 0 },
+      playerName: ''
     };
     S.ents.push({ k: 'house', x: ox + 1, y: oy + 1, w: 3, h: 3 });
     S.ents.push({ k: 'barn', x: ox + 5, y: oy + 1, w: 3, h: 2 });

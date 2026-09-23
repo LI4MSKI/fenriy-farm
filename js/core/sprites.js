@@ -7,6 +7,17 @@
   const art = FF.art;
   const cache = {};
 
+  /* Aktuelle Jahreszeit sicher abfragen (auch bevor season.js geladen/gestartet ist) */
+  function seasonIdx() { return (FF.season && FF.season.idx) ? FF.season.idx() : 1; }
+
+  /* Farbpaletten für die Wiese, je Jahreszeit (0 Frühling, 1 Sommer, 2 Herbst, 3 Winter) */
+  const SEASON_GRASS = [
+    { base: '#7bcb5e', a: '#6cc350', b: '#93dd72' },
+    { base: '#78c04a', a: '#6cb340', b: '#88d056' },
+    { base: '#b99a3e', a: '#a68530', b: '#cdb257' },
+    { base: '#e9f1f2', a: '#d7e6ea', b: '#ffffff' }
+  ];
+
   function mk(w, h, fn) {
     const c = document.createElement('canvas');
     c.width = w; c.height = h;
@@ -20,16 +31,19 @@
 
   /* ---------- Untergrund ---------- */
   art.grass = function (v) {
-    return cached('grass' + v, 16, 16, function (g) {
-      R(g, '#78c04a', 0, 0, 16, 16);
+    const si = seasonIdx();
+    return cached('grass' + v + '_' + si, 16, 16, function (g) {
+      const pal = SEASON_GRASS[si];
+      R(g, pal.base, 0, 0, 16, 16);
       const rnd = U.seeded(v * 97 + 13);
       const n = [3, 6, 7, 9][v];
       for (let i = 0; i < n; i++) {
         const x = Math.floor(rnd() * 15), y = Math.floor(rnd() * 14);
-        R(g, i % 2 ? '#6cb340' : '#88d056', x, y, 1, 1);
-        if (v > 1 && i % 3 === 0) R(g, '#6cb340', x, y + 1, 1, 1);
+        R(g, i % 2 ? pal.a : pal.b, x, y, 1, 1);
+        if (v > 1 && i % 3 === 0) R(g, pal.a, x, y + 1, 1, 1);
       }
-      if (v === 3) { R(g, '#fff', 10, 4); R(g, '#fff', 12, 4); R(g, '#fff', 11, 3); R(g, '#fff', 11, 5); R(g, '#ffd23c', 11, 4); }
+      if (v === 3 && si !== 3) { R(g, '#fff', 10, 4); R(g, '#fff', 12, 4); R(g, '#fff', 11, 3); R(g, '#fff', 11, 5); R(g, '#ffd23c', 11, 4); }
+      if (si === 3 && v > 0) { R(g, '#ffffff', 3, 3); R(g, '#ffffff', 12, 10); if (v > 2) R(g, '#ffffff', 8, 6); }
     });
   };
 
@@ -146,14 +160,19 @@
 
   /* ---------- Bäume ---------- */
   art.tree = function (def, ready) {
-    return cached('tree_' + def.id + '_' + (ready ? 1 : 0), 16, 16, function (g) {
+    const si = seasonIdx();
+    return cached('tree_' + def.id + '_' + (ready ? 1 : 0) + '_' + si, 16, 16, function (g) {
       const a = def.art;
-      const dark = U.shade(a.leaf, -35);
+      let leaf = a.leaf, leaf2 = a.leaf2;
+      if (si === 2) { leaf = U.mix(a.leaf, '#d9701e', 0.5); leaf2 = U.mix(a.leaf2, '#f0a83a', 0.5); }
+      else if (si === 3) { leaf = U.mix(a.leaf, '#eaf6fb', 0.4); leaf2 = U.mix(a.leaf2, '#ffffff', 0.45); }
+      const dark = U.shade(leaf, -35);
       R(g, 'rgba(0,0,0,0.18)', 4, 14, 8, 2);
       R(g, a.trunk, 7, 9, 2, 6); R(g, U.shade(a.trunk, -30), 8, 9, 1, 6); R(g, U.shade(a.trunk, -30), 6, 14, 4, 1);
-      R(g, a.leaf, 5, 0, 6, 1); R(g, a.leaf, 3, 1, 10, 2); R(g, a.leaf, 2, 3, 12, 3); R(g, a.leaf, 3, 6, 10, 2); R(g, a.leaf, 5, 8, 6, 1);
+      R(g, leaf, 5, 0, 6, 1); R(g, leaf, 3, 1, 10, 2); R(g, leaf, 2, 3, 12, 3); R(g, leaf, 3, 6, 10, 2); R(g, leaf, 5, 8, 6, 1);
       R(g, dark, 4, 7, 8, 1); R(g, dark, 5, 8, 6, 1); R(g, dark, 12, 4, 2, 3); R(g, dark, 11, 2, 2, 1);
-      R(g, a.leaf2, 4, 1, 3, 1); R(g, a.leaf2, 3, 3, 3, 1); R(g, a.leaf2, 4, 2, 1, 2); R(g, a.leaf2, 8, 1, 2, 1);
+      R(g, leaf2, 4, 1, 3, 1); R(g, leaf2, 3, 3, 3, 1); R(g, leaf2, 4, 2, 1, 2); R(g, leaf2, 8, 1, 2, 1);
+      if (si === 3) { R(g, '#ffffff', 5, 0, 6, 1); R(g, '#ffffff', 4, 1, 1, 1); R(g, '#ffffff', 10, 1, 1, 1); }
       if (ready) {
         [[4, 4], [8, 3], [11, 5], [6, 6], [9, 7]].forEach(function (p) {
           R(g, a.fruit, p[0], p[1], 2, 2); R(g, U.shade(a.fruit, 80), p[0], p[1], 1, 1);
@@ -195,6 +214,16 @@
           break;
         case 'bee':
           R(g, '#ffd23c', 0, 1, 3, 2); R(g, '#222', 1, 1, 1, 2); R(g, 'rgba(255,255,255,0.9)', 1, f ? 0 : 3, 2, 1);
+          break;
+        case 'duck':
+          R(g, '#fff8ec', 1, 4, 7, 4); R(g, '#efe3c8', 1, 7, 7, 1); R(g, '#fff8ec', 0, 3, 2, 2); R(g, '#fff8ec', 6, 2, 3, 3);
+          R(g, '#f0a030', 7, 3, 2, 1); R(g, '#222', 6, 3, 1, 1);
+          R(g, '#f0a030', 2 + f, 8, 1, 2); R(g, '#f0a030', 4 - f, 8, 1, 2);
+          break;
+        case 'goat':
+          R(g, '#ece7dd', 1, 3, 8, 5); R(g, '#d6d0c0', 1, 7, 8, 1); R(g, '#ece7dd', 9, 3, 3, 4); R(g, '#3a3a3a', 11, 4);
+          R(g, '#3a2a1a', 9, 1, 1, 2); R(g, '#3a2a1a', 11, 1, 1, 2); R(g, '#ece7dd', 9, 2, 1, 1);
+          R(g, '#3a3230', 2 + f, 8, 1, 3); R(g, '#3a3230', 7 - f, 8, 1, 3);
           break;
       }
     });

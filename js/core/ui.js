@@ -58,6 +58,22 @@
     $('goalText').textContent = U.fmt(S.total) + ' / ' + U.fmt(C.goal);
     const pct = Math.min(1, S.total / C.goal) * 100;
     $('goalBar').style.width = (pct > 0 && pct < 1 ? 1 : pct) + '%';
+    if (FF.season) {
+      const el = $('hudSeason');
+      el.className = 'box hud-season s' + FF.season.idx();
+      $('seasonLabel').textContent = FF.season.name() + (FF.events && FF.events.buff ? ' · ' + (FF.events.buff === 'merchant' ? '-20% Bau' : '+25% Verkauf') : '');
+    }
+  }
+
+  /* ---------- Zufalls-Ereignis-Karte ---------- */
+  function eventUpdate() {
+    const card = $('eventCard'), o = FF.events && FF.events.offer;
+    if (!o) { card.classList.add('hidden'); return; }
+    const info = FF.events.typeInfo(o.type);
+    card.classList.remove('hidden');
+    $('eventTitle').textContent = info.name;
+    $('eventDesc').textContent = info.desc;
+    $('eventBar').style.width = Math.max(0, Math.min(100, (FF.events.offerT / FF.events.OFFER_WIN) * 100)) + '%';
   }
 
   /* ---------- Saatgut-Leiste ---------- */
@@ -178,6 +194,17 @@
       '<button class="btn" data-act="export">Exportieren</button>' +
       '<button class="btn" data-act="import">Importieren</button>' +
       '<button class="btn bad" data-act="reset">Neustart</button></div>';
+    h += '<div class="section">Bestenliste</div>';
+    if (!FF.leaderboard || !FF.leaderboard.enabled()) {
+      h += '<p class="log">Die Bestenliste ist noch nicht eingerichtet.</p>';
+    } else {
+      h += '<div class="card" style="cursor:default;flex-wrap:wrap">' +
+        '<input id="lbName" type="text" placeholder="Dein Name" value="' + esc(S.playerName || '') + '" maxlength="20" ' +
+        'style="flex:1;min-width:120px;padding:7px 8px;border:2px solid var(--wood-d);border-radius:6px;font:14px var(--font);background:#fff">' +
+        '<button class="btn good" data-act="lbsubmit">Einreichen</button></div>';
+      h += leaderboardListHtml();
+      h += '<div class="btnrow"><button class="btn" data-act="lbrefresh">Aktualisieren</button></div>';
+    }
     h += '<div class="section">Ton</div><div class="btnrow">' +
       '<button class="btn' + (FF.audio.music ? ' on' : '') + '" data-act="music">Musik: ' + (FF.audio.music ? 'an' : 'aus') + '</button>' +
       '<button class="btn' + (FF.audio.sfxOn ? ' on' : '') + '" data-act="sfx">Effekte: ' + (FF.audio.sfxOn ? 'an' : 'aus') + '</button></div>';
@@ -186,6 +213,20 @@
       h += '<b>' + esc(c.version) + ' (' + esc(c.date) + ')</b><ul>' + c.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul>';
     });
     h += '</div><p class="log" style="margin-top:10px">Steuerung: Maus ziehen = ernten/säen, Rechtsklick oder WASD = Karte bewegen, Mausrad = Zoom. Auf dem Handy: zwei Finger = Karte verschieben und zoomen.</p>';
+    return h;
+  }
+
+  function leaderboardListHtml() {
+    const L = FF.leaderboard;
+    if (!L) return '';
+    if (L.loading) return '<p class="log">Lade…</p>';
+    if (L.err) return '<p class="log">' + esc(L.err) + '</p>';
+    if (!L.top.length) return '<p class="log">Noch keine Einträge. Sei die/der Erste!</p>';
+    let h = '<div class="stats">';
+    L.top.forEach(function (e, i) {
+      h += '<span>' + (i + 1) + '. ' + esc(e.name) + '</span><span>' + U.fmt(e.total) + '</span>';
+    });
+    h += '</div>';
     return h;
   }
 
@@ -212,6 +253,9 @@
     $('panelTitle').textContent = panelTitle(name);
     $('panelBody').scrollTop = 0;
     if (name === 'build' && FF.tool !== 'build' && lastSel) FF.setTool('build', lastSel);
+    if (name === 'info' && FF.leaderboard && FF.leaderboard.enabled() && !FF.leaderboard.lastFetch) {
+      FF.leaderboard.fetchTop(function () { UI.refreshPanel(); });
+    }
     UI.refreshPanel();
     syncToolbar();
   };
@@ -257,6 +301,19 @@
       case 'reset': return resetGame();
       case 'music': FF.audio.setMusic(!FF.audio.music); UI.refreshPanel(); return;
       case 'sfx': FF.audio.setSfx(!FF.audio.sfxOn); UI.refreshPanel(); return;
+      case 'lbsubmit': {
+        const nameEl = document.getElementById('lbName');
+        const name = nameEl ? nameEl.value.trim() : '';
+        if (!name) { UI.toast('Bitte gib zuerst einen Namen ein.', 'warn'); return; }
+        FF.state.playerName = name;
+        FF.save();
+        FF.leaderboard.submit(name, function (err) {
+          if (err) UI.toast('Bestenliste gerade nicht erreichbar.', 'warn');
+          else { UI.toast('Score eingereicht!', 'good'); UI.refreshPanel(); }
+        });
+        return;
+      }
+      case 'lbrefresh': FF.leaderboard.fetchTop(function () { UI.refreshPanel(); }); return;
     }
     if (why) UI.toast(why, 'warn');
     seedSig = '';
@@ -448,6 +505,7 @@
   UI.tick = function () {
     tickN++;
     hudUpdate();
+    eventUpdate();
     tooltipUpdate();
     if (tickN % 4 === 0) { tickAfford(); renderSeedbar(false); }
     if (tickN % 20 === 0 && panel === 'info') UI.refreshPanel();
@@ -475,6 +533,8 @@
     $('zoomIn').addEventListener('click', function () { FF.render.stepZoom(1); });
     $('zoomOut').addEventListener('click', function () { FF.render.stepZoom(-1); });
     $('zoomHome').addEventListener('click', function () { FF.render.centerHome(); });
+    $('eventBtn').addEventListener('click', function () { FF.events.claim(); eventUpdate(); hudUpdate(); });
+    FF.on('event', eventUpdate);
 
     FF.on('toast', function (t) { UI.toast(t.msg, t.type); });
     FF.on('rank', function (r) { UI.toast('Neuer Rang: ' + r.name + '!', 'rank'); });

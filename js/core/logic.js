@@ -73,18 +73,20 @@
   FF.advance = function (dt) {
     const S = FF.state, g = FF.M.growth, cap = FF.M.capacity;
     const wm = FF.weather ? FF.weather.mult : 1;
+    const sm = FF.season ? FF.season.mult() : 1; // Jahreszeit: wirkt nur im Freien (Feld/Baum/Tierfarm), nicht in Gebäuden
     const ents = S.ents;
     for (let i = 0; i < ents.length; i++) {
       const e = ents[i];
       if (e.k === 'field') {
         if (!e.c) continue;
         const c = FF.find('crops', e.c);
-        if (c && e.p < c.time) e.p = Math.min(c.time, e.p + dt * g * wm);
+        if (c && e.p < c.time) e.p = Math.min(c.time, e.p + dt * g * wm * sm);
       } else if (e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green') {
         const d = e.k === 'tree' ? FF.find('trees', e.t) : e.k === 'pen' ? FF.find('animals', e.t) : e.k === 'factory' ? FF.find('factories', e.t) : FF.find('greenhouses', e.t);
         if (!d) continue;
         if (e.n >= cap) { e.p = 0; continue; }
-        const tot = e.p + dt * g * wm;
+        const outdoor = (e.k === 'tree' || e.k === 'pen') ? sm : 1;
+        const tot = e.p + dt * g * wm * outdoor;
         const add = Math.floor(tot / d.interval);
         e.n = Math.min(cap, e.n + add);
         e.p = e.n >= cap ? 0 : tot - add * d.interval;
@@ -130,7 +132,7 @@
   FF.harvestField = function (e, quiet, opts) {
     const S = FF.state, c = FF.find('crops', e.c);
     if (!c) return 0;
-    const gain = c.yield * FF.M.price;
+    const gain = c.yield * FF.M.price * (FF.events ? FF.events.priceMult : 1);
     if (!(opts && opts.carry)) FF.earn(gain, e.x, e.y, quiet);
     S.stats.harvests++;
     e.last = e.c;
@@ -143,7 +145,7 @@
     if (!e.n) return 0;
     const d = FF.defOf(e);
     if (!d) return 0;
-    const gain = e.n * d.value * FF.M.price;
+    const gain = e.n * d.value * FF.M.price * (FF.events ? FF.events.priceMult : 1);
     FF.state.stats.collected += e.n;
     e.n = 0;
     if (!(opts && opts.carry)) FF.earn(gain, e.x + (e.w - 1) / 2, e.y, quiet);
@@ -186,7 +188,11 @@
   };
 
   /* ---------- Bauen ---------- */
-  FF.itemCost = function (kind, def) { return kind === 'field' ? C.fieldCost : def.cost; };
+  FF.itemCost = function (kind, def) {
+    const base = kind === 'field' ? C.fieldCost : def.cost;
+    const cm = (kind === 'field' || kind === 'tree' || kind === 'pen' || kind === 'factory' || kind === 'green') && FF.events ? FF.events.costMult : 1;
+    return Math.max(1, Math.round(base * cm));
+  };
   FF.itemSize = function (kind, def) { return (kind === 'pen' || kind === 'factory' || kind === 'green') ? { w: def.w, h: def.h } : { w: 1, h: 1 }; };
 
   /* Voraussetzung für Produktionsstätten (z.B. erst Weizen freischalten oder Schweinestall bauen) */

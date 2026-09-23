@@ -64,5 +64,14 @@ FF.util = (function () {
     return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
   }
 
-  return { fmt, fmtRate, fmtTime, hash, seeded, clamp, shade };
+  /* Zwei Farben mischen (hex, t = 0..1, 0 = hexA, 1 = hexB) – für Jahreszeiten-Einfärbung */
+  function mix(hexA, hexB, t) {
+    const a = parseInt(hexA.slice(1), 16), b = parseInt(hexB.slice(1), 16);
+    const ar = (a >> 16) & 255, ag = (a >> 8) & 255, ab = a & 255;
+    const br = (b >> 16) & 255, bg = (b >> 8) & 255, bb = b & 255;
+    const r = Math.round(ar + (br - ar) * t), g = Math.round(ag + (bg - ag) * t), bl = Math.round(ab + (bb - ab) * t);
+    return '#' + ((1 << 24) | (r << 16) | (g << 8) | bl).toString(16).slice(1);
+  }
+
+  return { fmt, fmtRate, fmtTime, hash, seeded, clamp, shade, mix };
 })();
