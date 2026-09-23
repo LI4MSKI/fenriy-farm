@@ -2,7 +2,7 @@
 FF.config = {
   version: window.FF_BUILD || '0.1.0',  // wird in index.html (FF_BUILD) hochgezählt
   saveKey: 'fenriyFarm.save',
-  saveVersion: 1,            // Bei Änderungen am Speicherformat erhöhen + Migration in state.js ergänzen
+  saveVersion: 2,            // Bei Änderungen am Speicherformat erhöhen + Migration in state.js ergänzen
 
   currency: 'Fenriy',
   goal: 100000000,           // Ziel: so viel Fenriy insgesamt verdienen

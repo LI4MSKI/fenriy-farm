@@ -1,5 +1,8 @@
 /* NEUIGKEITEN - neueste Version zuerst */
 FF.content.changelog.push(
+  { version: '0.6.1', date: '2026-09-23', notes: [
+    'Fix: Flüsse, die durch die automatische Generierung aus 0.5.0 entstanden sind, werden jetzt bei jedem Spielstand automatisch entfernt (einmalig beim Laden, keine Aktion nötig).'
+  ] },
   { version: '0.6.0', date: '2026-09-23', notes: [
     'Geändert: Die zufällige Fluss-Generierung aus 0.5.0 wurde wieder entfernt – neue Spielstände starten jetzt wieder ohne automatisch gebauten Fluss. Flüsse lassen sich weiterhin von Hand bauen (unter "Land" in der Deko), mit der neuen animierten, schimmernden Wassertextur.',
     'Neu: Zaun-Tiere! Baust du Zäune, fangen sich darin wandernde Hasen. Je mehr Zaun-Kacheln du gebaut hast, desto mehr Tiere ziehen ein – und desto mehr Fenriy bringen sie passiv ein. Zum Abholen auf einen Zaun klicken oder im Menü unter "Auftrag".',
