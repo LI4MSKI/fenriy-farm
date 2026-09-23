@@ -386,6 +386,7 @@
     FF.rt.recent = []; FF.rt.rate = 0; FF.rt.rankIdx = FF.rankInfo().idx;
     FF.floats.length = 0;
     if (FF.resetWorkers) FF.resetWorkers();
+    if (FF.resetWildlife) FF.resetWildlife();
     FF.farmerHome();
     FF.render.centerHome();
     FF.save();

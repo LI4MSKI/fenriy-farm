@@ -229,6 +229,25 @@
     });
   };
 
+  /* ---------- Wildtiere (herumlaufend, rein optisch) ---------- */
+  const WILD_WING = ['#e0537a', '#f0a83a', '#7ab8ff', '#c85ae0'];
+  art.wild = function (kind, variant, frame) {
+    const f = frame ? 1 : 0, v = (variant || 0) % 4;
+    return cached('wild_' + kind + v + f, 8, 8, function (g) {
+      if (kind === 'butterfly') {
+        const col = WILD_WING[v];
+        R(g, col, 1, 1 + f, 2, 2); R(g, col, 5, 1 + f, 2, 2);
+        R(g, U.shade(col, -35), 1, 3 - f, 2, 2); R(g, U.shade(col, -35), 5, 3 - f, 2, 2);
+        R(g, '#3a2a1a', 3, 2, 2, 3);
+      } else {
+        R(g, '#efe9df', 2, 3, 4, 3); R(g, '#d8d0c2', 2, 5, 4, 1);
+        R(g, '#efe9df', 1, 1, 1, 3); R(g, '#efe9df', 5, 1, 1, 2 + f);
+        R(g, '#f2c0c8', 1, 1, 1, 1);
+        R(g, '#3a3230', 2 + f, 6, 1, 2); R(g, '#3a3230', 5 - f, 6, 1, 2);
+      }
+    });
+  };
+
   /* Bauern-Figur (zwei Lauf-Bilder) */
   art.farmer = function (frame) {
     const f = frame ? 1 : 0;
@@ -482,6 +501,30 @@
           }
           [[3, 4], [11, 9], [6, 12]].forEach(function (p) { R(g, 'rgba(255,255,255,0.5)', p[0], p[1], 2, 1); });
           edges(g, mask, a.dark);
+          break;
+        }
+        case 'rock': {
+          R(g, 'rgba(0,0,0,0.15)', 3, 13, 10, 2);
+          R(g, '#9a9a92', 3, 6, 10, 7); R(g, '#7d7d74', 3, 11, 10, 2);
+          R(g, '#b5b5ac', 4, 5, 6, 2); R(g, '#c7c7bd', 5, 5, 3, 1);
+          R(g, '#6a6a62', 9, 7, 3, 5); R(g, '#8a8a80', 3, 8, 4, 4);
+          break;
+        }
+        case 'shrub': {
+          R(g, 'rgba(0,0,0,0.15)', 3, 13, 10, 2);
+          R(g, '#3f8a3a', 3, 5, 10, 8); R(g, '#4fa83f', 4, 4, 8, 2); R(g, '#2f6e2c', 3, 11, 10, 2);
+          R(g, '#5cc250', 5, 5, 2, 1); R(g, '#5cc250', 9, 6, 2, 1);
+          R(g, '#e0537a', 6, 8, 1, 1); R(g, '#e0537a', 10, 9, 1, 1); R(g, '#e0537a', 4, 9, 1, 1);
+          break;
+        }
+        case 'scarecrow': {
+          R(g, 'rgba(0,0,0,0.15)', 5, 14, 6, 2);
+          R(g, '#8a5a2f', 7, 4, 2, 10); R(g, '#8a5a2f', 3, 7, 10, 2);
+          R(g, '#c9a15a', 6, 2, 4, 3); R(g, '#5a3a1a', 6, 2, 4, 1);
+          R(g, '#2a2a2a', 7, 3, 1, 1); R(g, '#2a2a2a', 9, 3, 1, 1); R(g, '#7a2a1a', 7, 4, 2, 1);
+          R(g, '#5a3a8a', 4, 5, 8, 5); R(g, '#f5c542', 4, 5, 8, 1);
+          R(g, '#c9a15a', 2, 7, 2, 1); R(g, '#c9a15a', 12, 7, 2, 1);
+          R(g, '#7a5a2f', 5, 10, 2, 4); R(g, '#7a5a2f', 9, 10, 2, 4);
           break;
         }
       }

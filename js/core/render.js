@@ -100,6 +100,19 @@
     return m;
   }
 
+  /* Animiertes Glitzern/Strömen auf Wasser-Kacheln (Bewegung nur hier, nicht im gecachten Bild) */
+  function waterShimmer(px, py, t, seed) {
+    ctx.save();
+    ctx.beginPath(); ctx.rect(px, py, T, T); ctx.clip();
+    const o1 = (((t * 9 + seed) % 22) + 22) % 22 - 5;
+    ctx.fillStyle = 'rgba(255,255,255,0.32)';
+    ctx.fillRect(px + o1, py + 3, 3, 1); ctx.fillRect(px + o1 - 7, py + 10, 4, 1);
+    const o2 = (((t * 6 + seed * 1.7 + 11) % 22) + 22) % 22 - 5;
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.fillRect(px + o2, py + 7, 3, 1);
+    ctx.restore();
+  }
+
   function drawPen(e, d, t, labels) {
     const px = e.x * T, py = e.y * T, w = e.w * T, h = e.h * T;
     ctx.drawImage(art.pen(d), px, py);
@@ -173,6 +186,14 @@
     return { x: tx - Math.floor(sz.w / 2), y: ty - Math.floor(sz.h / 2) };
   };
 
+  /* Baum-Sprite skaliert zeichnen (art.size, Standard 1 = normal). Bleibt am Kachel-Fußpunkt verankert,
+   * damit kleinere/größere Bäume optisch weiterhin auf ihrer Kachel "stehen". */
+  function drawTree(spr, def, ex, ey) {
+    const scale = (def.art && def.art.size) || 1;
+    const w = T * scale, h = T * scale;
+    ctx.drawImage(spr, ex * T + T / 2 - w / 2, ey * T + T - h, w, h);
+  }
+
   function drawGhost(t) {
     const sel = FF.buildSel, hv = FF.hover;
     if (FF.tool !== 'build' || !sel || !hv.on) return;
@@ -187,7 +208,8 @@
     else if (sel.kind === 'green') spr = art.greenhouse(sel.def);
     else spr = art.decor(sel.def, 0);
     ctx.globalAlpha = 0.7;
-    ctx.drawImage(spr, x0 * T, y0 * T);
+    if (sel.kind === 'tree') drawTree(spr, sel.def, x0, y0);
+    else ctx.drawImage(spr, x0 * T, y0 * T);
     ctx.globalAlpha = 1;
     for (let j = 0; j < sz.h; j++) for (let i = 0; i < sz.w; i++) {
       const tx = x0 + i, ty = y0 + j;
@@ -235,7 +257,10 @@
           const d = FF.find('decor', e.t);
           if (!d) break;
           const ty = d.art.type;
-          if (ty === 'path' || ty === 'water') ctx.drawImage(art.decor(d, neighborMask(e, ty)), e.x * T, e.y * T);
+          if (ty === 'path' || ty === 'water') {
+            ctx.drawImage(art.decor(d, neighborMask(e, ty)), e.x * T, e.y * T);
+            if (ty === 'water') waterShimmer(e.x * T, e.y * T, t, U.hash(e.x, e.y) % 22);
+          }
           else if (ty === 'flowers') ctx.drawImage(art.decor(d, 0), e.x * T, e.y * T);
           else objs.push({ y: (e.y + 1) * T, e: e, d: d });
           break;
@@ -284,6 +309,7 @@
     const f = FF.farmer;
     objs.push({ y: f.y + 2, farmer: true });
     FF.workers.forEach(function (w) { objs.push({ y: w.y + 2, worker: w }); });
+    if (FF.wildlife) FF.wildlife.forEach(function (c) { objs.push({ y: c.y + 2, critter: c }); });
     if (FF.cutscene && FF.cutscene.active) FF.cutscene.objects(objs);
     objs.sort(function (a, b) { return a.y - b.y; });
     const labels = [];
@@ -308,9 +334,17 @@
         else ctx.drawImage(spr, Math.round(f.x) - 6, Math.round(f.y) - 14 + bob);
         continue;
       }
+      if (o.critter) {
+        const c = o.critter;
+        const wspr = art.wild(c.kind, c.v, Math.floor(c.step) % 2);
+        const cx = Math.round(c.x), cy = Math.round(c.y) - 8;
+        if (c.flip) { ctx.save(); ctx.translate(cx + 4, cy); ctx.scale(-1, 1); ctx.drawImage(wspr, 0, 0); ctx.restore(); }
+        else ctx.drawImage(wspr, cx - 4, cy);
+        continue;
+      }
       const e = o.e;
       switch (e.k) {
-        case 'tree': if (o.d) ctx.drawImage(art.tree(o.d, e.n > 0), e.x * T, e.y * T); break;
+        case 'tree': if (o.d) drawTree(art.tree(o.d, e.n > 0), o.d, e.x, e.y); break;
         case 'pen': if (o.d) drawPen(e, o.d, t, labels); break;
         case 'factory': if (o.d) drawFactory(e, o.d, t, labels); break;
         case 'green': if (o.d) drawGreenhouse(e, o.d, t, labels); break;

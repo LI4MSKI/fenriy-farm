@@ -24,6 +24,7 @@
     FF.ui.init();
     FF.farmerHome();
     if (FF.syncWorkers) FF.syncWorkers();
+    if (FF.syncWildlife) FF.syncWildlife();
     const sb = document.getElementById('soundBtn');
     function soundUi() { sb.classList.toggle('off', !FF.audio.music); }
     sb.addEventListener('click', function () { FF.audio.setMusic(!FF.audio.music); soundUi(); FF.ui.refreshPanel(); });
@@ -67,6 +68,7 @@
       FF.update(dt);
       FF.updateFarmer(dt);
       FF.updateWorkers(dt);
+      if (FF.updateWildlife) FF.updateWildlife(dt);
       FF.input.update(dt);
       FF.render.update(dt);
       FF.render.draw(time);
