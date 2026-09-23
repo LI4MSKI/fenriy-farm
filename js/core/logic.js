@@ -92,6 +92,18 @@
         e.p = e.n >= cap ? 0 : tot - add * d.interval;
       }
     }
+    // Zaun-Tiere: eingefangene Wildtiere produzieren passiv (draußen, wirkt also die Jahreszeit mit)
+    if (S.corral) {
+      const corralCap = FF.corralCapacity();
+      if (corralCap > 0 && S.corral.n < cap) {
+        const tot = S.corral.p + dt * g * wm * sm * corralCap;
+        const add = Math.floor(tot / C.corralInterval);
+        S.corral.n = Math.min(cap, S.corral.n + add);
+        S.corral.p = S.corral.n >= cap ? 0 : tot - add * C.corralInterval;
+      } else if (corralCap === 0) {
+        S.corral.p = 0;
+      }
+    }
   };
 
   /* ---------- Ernten & Säen ---------- */
@@ -152,6 +164,34 @@
     return gain;
   };
 
+  /* ---------- Zaun-Tiere ---------- */
+  /* Anzahl gebauter Zaun-Kacheln (jede Zaun-Art zählt gleich). */
+  FF.fenceCount = function () {
+    const S = FF.state;
+    let n = 0;
+    for (let i = 0; i < S.ents.length; i++) {
+      const e = S.ents[i];
+      if (e.k !== 'decor') continue;
+      const d = FF.find('decor', e.t);
+      if (d && d.art.type === 'fence') n++;
+    }
+    return n;
+  };
+  FF.corralCapacity = function () { return Math.min(C.corralMaxAnimals, Math.floor(FF.fenceCount() / C.fenceTilesPerAnimal)); };
+  FF.corralRate = function () {
+    const cap = FF.corralCapacity();
+    return cap > 0 ? cap * C.corralValue * FF.M.price / C.corralInterval : 0;
+  };
+  FF.collectCorral = function (tx, ty, quiet) {
+    const S = FF.state;
+    if (!S.corral || !S.corral.n) return 0;
+    const gain = S.corral.n * C.corralValue * FF.M.price * (FF.events ? FF.events.priceMult : 1);
+    S.stats.collected += S.corral.n;
+    S.corral.n = 0;
+    FF.earn(gain, tx, ty, quiet);
+    return gain;
+  };
+
   /* Klick/Ziehen mit dem Ernte-Werkzeug auf einer Kachel */
   FF.actTile = function (tx, ty) {
     const e = FF.entAt(tx, ty);
@@ -166,6 +206,10 @@
       return null;
     }
     if ((e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green') && e.n > 0) { FF.collect(e); return 'collect'; }
+    if (e.k === 'decor') {
+      const d = FF.find('decor', e.t);
+      if (d && d.art.type === 'fence' && FF.state.corral && FF.state.corral.n > 0) { FF.collectCorral(e.x, e.y); return 'collect'; }
+    }
     return null;
   };
 
@@ -183,6 +227,7 @@
         if (c && S.crops[e.last] && S.money >= c.seed) { S.money -= c.seed; e.c = e.last; e.p = 0; }
       }
     }
+    if (S.corral && S.corral.n > 0) { total += FF.collectCorral(0, 0, true); count++; }
     if (total > 0) FF.emit('float', { x: 0, y: 0, text: '+' + U.fmt(total), col: '#ffe27a', hud: true });
     return total;
   };
@@ -243,6 +288,7 @@
       if (c && S.money >= c.seed) FF.plant(e, S.seed);
     }
     if (kind === 'green') FF.recalc();
+    if (kind === 'decor' && def.art.type === 'fence' && FF.syncWildlife) FF.syncWildlife();
     return null;
   };
 
@@ -258,9 +304,11 @@
     if ((e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green') && e.n > 0) FF.collect(e);
     const refund = Math.floor(cost * C.refund);
     S.money += refund;
+    const wasFence = e.k === 'decor' && (function () { const d = FF.find('decor', e.t); return d && d.art.type === 'fence'; })();
     FF.setGrid(e, undefined);
     S.ents.splice(S.ents.indexOf(e), 1);
     if (e.k === 'green') FF.recalc();
+    if (wasFence && FF.syncWildlife) FF.syncWildlife();
     if (refund > 0) FF.emit('float', { x: tx * C.tile + 8, y: ty * C.tile, text: '+' + U.fmt(refund), col: '#b8e8ff' });
     return null;
   };

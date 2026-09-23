@@ -126,7 +126,7 @@
     else if (it.kind === 'pen') meta = d.w + '×' + d.h + ' · ' + esc(d.product) + ' · +' + U.fmtRate(FF.itemRate('pen', d)) + '/s';
     else if (it.kind === 'factory') meta = d.w + '×' + d.h + ' · ' + esc(d.product) + ' · +' + U.fmtRate(FF.itemRate('factory', d)) + '/s' + (FF.factoryReady(d) ? '' : ' · braucht: ' + esc(FF.factoryNeedText(d)));
     else if (it.kind === 'green') meta = d.w + '×' + d.h + ' · beschleunigt alles · +' + U.fmtRate(FF.itemRate('green', d)) + '/s';
-    else meta = d.art.type === 'path' ? 'Weg' : d.art.type === 'fence' ? 'Zaun' : d.art.type === 'water' ? 'Fluss' : 'Deko';
+    else meta = d.art.type === 'path' ? 'Weg' : d.art.type === 'fence' ? 'Zaun · fängt Wildtiere ein' : d.art.type === 'water' ? 'Fluss' : 'Deko';
     const iconKind = it.kind === 'field' ? 'field' : it.kind === 'tree' ? 'tree' : it.kind === 'pen' ? 'animal' : it.kind === 'factory' ? 'factory' : it.kind === 'green' ? 'green' : 'decor';
     return '<button class="card' + (sel ? ' sel' : '') + '" data-act="pick" data-kind="' + it.kind + '" data-id="' + d.id + '" data-cost="' + cost + '">' +
       '<img class="ic" src="' + art.icon(iconKind, d.id === 'field' ? null : d) + '" alt="">' +
@@ -189,6 +189,14 @@
       '<span>Produkte gesammelt</span><span>' + U.fmt(S.stats.collected) + '</span>' +
       '<span>Gebaut</span><span>' + U.fmt(S.stats.built) + '</span>' +
       '<span>Grundstücke</span><span>' + S.plots.length + ' / ' + (C.worldPlots.w * C.worldPlots.h) + '</span></div>';
+    h += '<div class="section">Zaun-Tiere</div>';
+    const corralCap = FF.corralCapacity ? FF.corralCapacity() : 0;
+    if (corralCap <= 0) {
+      h += '<p class="log">Baue Zäune (unter "Land" in der Deko) – wandernde Wildtiere lassen sich darin nieder und bringen passiv Fenriy ein. Ab ' + C.fenceTilesPerAnimal + ' gebauten Zaun-Kacheln zieht das erste Tier ein.</p>';
+    } else {
+      h += '<p class="log">' + corralCap + ' Tierplätze belegt (' + FF.fenceCount() + ' Zaun-Kacheln gebaut) · Vorrat: ' + U.fmt(Math.floor(S.corral.n)) + ' · +' + U.fmtRate(FF.corralRate()) + '/s</p>';
+      h += '<div class="btnrow"><button class="btn good" data-act="corralcollect"' + (S.corral.n > 0 ? '' : ' disabled') + '>Abholen</button></div>';
+    }
     h += '<div class="section">Spielstand</div><div class="btnrow">' +
       '<button class="btn" data-act="save">Speichern</button>' +
       '<button class="btn" data-act="export">Exportieren</button>' +
@@ -314,6 +322,12 @@
         return;
       }
       case 'lbrefresh': FF.leaderboard.fetchTop(function () { UI.refreshPanel(); }); return;
+      case 'corralcollect': {
+        const gain = FF.collectCorral(Math.floor(FF.farmer.tx / C.tile), Math.floor(FF.farmer.ty / C.tile));
+        if (gain > 0) UI.toast('+' + U.fmt(gain) + ' Fenriy von den Zaun-Tieren!', 'good');
+        UI.refreshPanel();
+        return;
+      }
     }
     if (why) UI.toast(why, 'warn');
     seedSig = '';

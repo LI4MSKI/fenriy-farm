@@ -61,10 +61,11 @@
 
   /* ---------- Pflanzen ---------- */
   function shadow(g, cx, oy, w) { R(g, 'rgba(20,15,5,0.18)', cx - Math.ceil(w / 2), oy + 8, w, 1); }
-  function cell(g, a, stage, ox, oy) {
-    const cx = ox + 4;
+  /* sway: leichter Wind-Versatz in Pixeln (nur Blätter/Stängel/Frucht, Schatten bleibt am Boden) */
+  function cell(g, a, stage, ox, oy, sway) {
+    const cx = ox + 4, sx = sway || 0;
     const G = a.leaf || '#3fa53a';
-    const GL = U.shade(G, 32), GD = U.shade(G, -28);
+    const GL = U.shade(G, 32), GD = U.shade(G, -28), GLL = U.mix(GL, '#fff6c0', 0.45);
     const big = !!a.big;
     if (stage === 0) {
       R(g, '#e8d9a0', cx - 1, oy + 6); R(g, '#e8d9a0', cx + 1, oy + 7); R(g, GL, cx, oy + 6); return;
@@ -74,50 +75,52 @@
         const h = big ? [0, 3, 5, 6][stage] : [0, 2, 3, 5][stage];
         shadow(g, cx, oy, big ? 5 : 3);
         const col = (stage === 3 && a.stem) ? a.stem : G;
-        R(g, col, cx, oy + 8 - h, 1, h);
+        R(g, col, cx + sx, oy + 8 - h, 1, h);
         if (stage >= 2) {
-          R(g, GL, cx - 1, oy + 8 - h + 2); R(g, GD, cx + 1, oy + 8 - h + 3);
-          if (big) R(g, GL, cx + 1, oy + 8 - h + 1);
+          R(g, GL, cx - 1 + sx, oy + 8 - h + 2); R(g, GD, cx + 1 + sx, oy + 8 - h + 3);
+          if (big) R(g, GL, cx + 1 + sx, oy + 8 - h + 1);
         }
         if (stage === 3) {
           if (big) {
-            R(g, a.fruit, cx + 1, oy + 3, 2, 3); R(g, U.shade(a.fruit, -40), cx + 2, oy + 3, 1, 3);
-            R(g, U.shade(a.fruit, 65), cx + 1, oy + 3); R(g, GD, cx + 1, oy + 6);
+            R(g, a.fruit, cx + 1 + sx, oy + 3, 2, 3); R(g, U.shade(a.fruit, -40), cx + 2 + sx, oy + 3, 1, 3);
+            R(g, U.shade(a.fruit, 75), cx + 1 + sx, oy + 3); R(g, GD, cx + 1 + sx, oy + 6);
           } else {
-            R(g, a.fruit, cx - 1, oy + 8 - h - 1, 3, 2); R(g, U.shade(a.fruit, 70), cx - 1, oy + 8 - h - 1);
-            R(g, U.shade(a.fruit, -35), cx + 1, oy + 8 - h); R(g, a.fruit, cx, oy + 8 - h - 2);
+            R(g, a.fruit, cx - 1 + sx, oy + 8 - h - 1, 3, 2); R(g, U.shade(a.fruit, 80), cx - 1 + sx, oy + 8 - h - 1);
+            R(g, U.shade(a.fruit, -35), cx + 1 + sx, oy + 8 - h); R(g, a.fruit, cx + sx, oy + 8 - h - 2);
           }
+          R(g, GLL, cx + (big ? -2 : -1) + sx, oy + 8 - h + 1);
         }
         break;
       }
       case 'root': {
-        if (stage === 1) { shadow(g, cx, oy, 2); R(g, G, cx, oy + 6, 1, 2); R(g, GL, cx, oy + 6); }
+        if (stage === 1) { shadow(g, cx, oy, 2); R(g, G, cx + sx, oy + 6, 1, 2); R(g, GL, cx + sx, oy + 6); }
         else {
           shadow(g, cx, oy, 3);
-          R(g, GD, cx - 1, oy + 5, 1, 3); R(g, G, cx, oy + 3 + (stage === 3 ? 0 : 1), 1, 5); R(g, GL, cx + 1, oy + 5, 1, 3);
-          R(g, GL, cx, oy + 3 + (stage === 3 ? 0 : 1));
+          R(g, GD, cx - 1 + sx, oy + 5, 1, 3); R(g, G, cx + sx, oy + 3 + (stage === 3 ? 0 : 1), 1, 5); R(g, GL, cx + 1 + sx, oy + 5, 1, 3);
+          R(g, GLL, cx + sx, oy + 3 + (stage === 3 ? 0 : 1));
           if (stage === 3) {
-            R(g, a.fruit, cx - 1, oy + 7, 3, 1); R(g, U.shade(a.fruit, 55), cx - 1, oy + 7); R(g, U.shade(a.fruit, -35), cx + 1, oy + 7);
+            R(g, a.fruit, cx - 1, oy + 7, 3, 1); R(g, U.shade(a.fruit, 60), cx - 1, oy + 7); R(g, U.shade(a.fruit, -35), cx + 1, oy + 7);
           }
         }
         break;
       }
       case 'bush': {
-        if (stage === 1) { shadow(g, cx, oy, 2); R(g, G, cx - 1, oy + 6, 2, 2); R(g, GL, cx - 1, oy + 6); }
+        if (stage === 1) { shadow(g, cx, oy, 2); R(g, G, cx - 1 + sx, oy + 6, 2, 2); R(g, GL, cx - 1 + sx, oy + 6); }
         else if (stage === 2) {
           shadow(g, cx, oy, 4);
-          R(g, G, cx - 2, oy + 5, 4, 3); R(g, GL, cx - 1, oy + 4, 2, 1); R(g, GD, cx - 2, oy + 7, 4, 1);
+          R(g, G, cx - 2 + sx, oy + 5, 4, 3); R(g, GL, cx - 1 + sx, oy + 4, 2, 1); R(g, GD, cx - 2 + sx, oy + 7, 4, 1);
+          R(g, GLL, cx + sx, oy + 4);
         } else {
           shadow(g, cx, oy, 6);
-          R(g, G, cx - 3, oy + 4, 6, 4); R(g, GL, cx - 2, oy + 3, 3, 1); R(g, GD, cx - 3, oy + 7, 6, 1);
-          R(g, GL, cx + 1, oy + 4, 2, 1);
+          R(g, G, cx - 3 + sx, oy + 4, 6, 4); R(g, GL, cx - 2 + sx, oy + 3, 3, 1); R(g, GD, cx - 3 + sx, oy + 7, 6, 1);
+          R(g, GL, cx + 1 + sx, oy + 4, 2, 1); R(g, GLL, cx - 2 + sx, oy + 4); R(g, GLL, cx + 2 + sx, oy + 5);
           if (big) {
             R(g, a.fruit, cx - 3, oy + 5, 3, 3); R(g, a.fruit, cx + 1, oy + 4, 3, 3);
-            R(g, U.shade(a.fruit, 70), cx - 3, oy + 5); R(g, U.shade(a.fruit, 70), cx + 1, oy + 4);
+            R(g, U.shade(a.fruit, 75), cx - 3, oy + 5); R(g, U.shade(a.fruit, 75), cx + 1, oy + 4);
             R(g, U.shade(a.fruit, -55), cx - 1, oy + 7); R(g, U.shade(a.fruit, -55), cx + 3, oy + 6);
           } else {
             R(g, a.fruit, cx - 2, oy + 5); R(g, a.fruit, cx + 1, oy + 6); R(g, a.fruit, cx, oy + 4); R(g, a.fruit, cx + 2, oy + 5);
-            R(g, U.shade(a.fruit, 75), cx - 2, oy + 5); R(g, U.shade(a.fruit, 75), cx, oy + 4);
+            R(g, U.shade(a.fruit, 80), cx - 2, oy + 5); R(g, U.shade(a.fruit, 80), cx, oy + 4);
           }
         }
         break;
@@ -125,12 +128,13 @@
       case 'vine': {
         shadow(g, cx, oy, 4);
         R(g, '#7a5a33', cx, oy + 2, 1, 6); R(g, U.shade('#7a5a33', 30), cx, oy + 2, 1, 1);
-        if (stage === 1) { R(g, G, cx + 1, oy + 5); R(g, GL, cx + 1, oy + 5); }
+        if (stage === 1) { R(g, G, cx + 1 + sx, oy + 5); R(g, GL, cx + 1 + sx, oy + 5); }
         else {
-          R(g, G, cx - 1, oy + 2, 3, 2); R(g, GL, cx - 2, oy + 4, 2, 1); R(g, GD, cx + 1, oy + 4, 2, 1);
+          R(g, G, cx - 1 + sx, oy + 2, 3, 2); R(g, GL, cx - 2 + sx, oy + 4, 2, 1); R(g, GD, cx + 1 + sx, oy + 4, 2, 1);
+          R(g, GLL, cx + sx, oy + 2);
           if (stage === 3) {
             R(g, a.fruit, cx - 1, oy + 5, 3, 1); R(g, a.fruit, cx - 1, oy + 6, 2, 1); R(g, a.fruit, cx, oy + 7);
-            R(g, U.shade(a.fruit, 75), cx - 1, oy + 5); R(g, U.shade(a.fruit, -40), cx + 1, oy + 6);
+            R(g, U.shade(a.fruit, 80), cx - 1, oy + 5); R(g, U.shade(a.fruit, -40), cx + 1, oy + 6);
           }
         }
         break;
@@ -138,16 +142,19 @@
     }
   }
 
-  /* Feld-Kachel mit (optionaler) Pflanze im Wachstums-Stadium 0..3 */
-  art.field = function (crop, stage) {
-    const key = 'field_' + (crop ? crop.id + '_' + stage : 'empty');
+  /* Feld-Kachel mit (optionaler) Pflanze im Wachstums-Stadium 0..3.
+   * swayFrame (0..3) lässt gewachsene Pflanzen sanft im Wind hin- und herwiegen (siehe render.js). */
+  art.field = function (crop, stage, swayFrame) {
+    const sf = swayFrame || 0;
+    const key = 'field_' + (crop ? crop.id + '_' + stage + '_' + sf : 'empty');
     return cached(key, 16, 16, function (g) {
       g.drawImage(art.soil(), 0, 0);
       if (!crop) return;
-      cell(g, crop.art, stage, 0, 0);
-      cell(g, crop.art, stage, 8, 0);
-      cell(g, crop.art, stage, 0, 8);
-      cell(g, crop.art, stage, 8, 8);
+      const sway = stage > 0 ? [-1, 0, 1, 0][sf] : 0;
+      cell(g, crop.art, stage, 0, 0, sway);
+      cell(g, crop.art, stage, 8, 0, sway);
+      cell(g, crop.art, stage, 0, 8, sway);
+      cell(g, crop.art, stage, 8, 8, sway);
     });
   };
   /* Nur die Pflanze (für Icons in der Oberfläche) */

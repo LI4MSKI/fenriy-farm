@@ -250,7 +250,9 @@
       switch (e.k) {
         case 'field': {
           const crop = e.c ? FF.find('crops', e.c) : null;
-          ctx.drawImage(art.field(crop, FF.stageOf(e, crop)), e.x * T, e.y * T);
+          const stage = FF.stageOf(e, crop);
+          const swayFrame = stage > 0 ? Math.floor(t * C.windSwaySpeed + U.hash(e.x, e.y) % 8) % 4 : 0;
+          ctx.drawImage(art.field(crop, stage, swayFrame), e.x * T, e.y * T);
           break;
         }
         case 'decor': {

@@ -31,17 +31,13 @@
       won: false,
       seen: { intro: false },
       season: { idx: 0, t: 0 },
-      playerName: ''
+      playerName: '',
+      corral: { p: 0, n: 0 }
     };
     S.ents.push({ k: 'house', x: ox + 1, y: oy + 1, w: 3, h: 3 });
     S.ents.push({ k: 'barn', x: ox + 5, y: oy + 1, w: 3, h: 2 });
     for (let y = 0; y < 3; y++) for (let x = 0; x < 4; x++) {
       S.ents.push({ k: 'field', x: ox + 1 + x, y: oy + 5 + y, w: 1, h: 1, c: null, p: 0, last: null });
-    }
-    // Jedes neue Spiel bekommt einen eigenen, zufällig geschlängelten Fluss (Start-Grundstück bleibt frei)
-    if (FF.worldgen) {
-      const ex = { x0: ox, y0: oy, x1: ox + C.plotSize - 1, y1: oy + C.plotSize - 1 };
-      FF.worldgen.makeRiver(WT, ex).forEach(function (e) { S.ents.push(e); });
     }
     return S;
   };
