@@ -1,5 +1,11 @@
 /* NEUIGKEITEN - neueste Version zuerst */
 FF.content.changelog.push(
+  { version: '0.6.0', date: '2026-09-23', notes: [
+    'Geändert: Die zufällige Fluss-Generierung aus 0.5.0 wurde wieder entfernt – neue Spielstände starten jetzt wieder ohne automatisch gebauten Fluss. Flüsse lassen sich weiterhin von Hand bauen (unter "Land" in der Deko), mit der neuen animierten, schimmernden Wassertextur.',
+    'Neu: Zaun-Tiere! Baust du Zäune, fangen sich darin wandernde Hasen. Je mehr Zaun-Kacheln du gebaut hast, desto mehr Tiere ziehen ein – und desto mehr Fenriy bringen sie passiv ein. Zum Abholen auf einen Zaun klicken oder im Menü unter "Auftrag".',
+    'Neu: Pflanzen auf den Feldern wiegen jetzt sanft im Wind und haben mehr farbige Glanzlichter.',
+    'Bäume in unterschiedlichen Größen aus 0.5.0 bleiben erhalten.'
+  ] },
   { version: '0.5.0', date: '2026-09-23', notes: [
     'Riesen-Update: Die Welt ist jetzt viel größer (9×9 statt 5×5 Grundstücke)! Jede NEUE Farm bekommt außerdem ihren eigenen, zufällig geschlängelten Fluss mit neuer, animierter, schimmernder Wassertextur – alte Spielstände bleiben dabei unverändert.',
     'Neu: Bäume wachsen jetzt in unterschiedlichen Größen (klein bis groß) für mehr Abwechslung auf der Farm.',

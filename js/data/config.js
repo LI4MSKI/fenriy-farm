@@ -31,6 +31,18 @@ FF.config = {
     return FF.config.nice(Math.min(FF.config.plotPriceCap, 1000 * Math.pow(2.15, n - 1)));
   },
 
+  /* Zaun-Tiere: gebaute Zaun-Kacheln (jede Zaun-Art zählt) fangen wandernde Wildtiere ein.
+   * Je fenceTilesPerAnimal gebaute Zaun-Kacheln gibt es einen Tierplatz (Obergrenze corralMaxAnimals).
+   * Die Tiere produzieren wie eine Tierfarm passiv Vorrat (corralInterval Sekunden je Einheit bei 1 Tier,
+   * mehrere Tiere arbeiten parallel), corralValue Fenriy pro Einheit. Zum Abholen auf einen Zaun klicken. */
+  fenceTilesPerAnimal: 3,
+  corralMaxAnimals: 20,
+  corralInterval: 6,
+  corralValue: 45,
+
+  /* Wind: wie schnell Pflanzen auf den Feldern sanft hin- und herwiegen (Bildwechsel pro Sekunde) */
+  windSwaySpeed: 1.6,
+
   /* Rundet Preise auf "schöne" Zahlen (2 wertige Ziffern) */
   nice: function (v) {
     if (v < 100) return Math.round(v);
