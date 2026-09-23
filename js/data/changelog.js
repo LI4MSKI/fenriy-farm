@@ -1,5 +1,12 @@
 /* NEUIGKEITEN - neueste Version zuerst */
 FF.content.changelog.push(
+  { version: '0.5.0', date: '2026-09-23', notes: [
+    'Riesen-Update: Die Welt ist jetzt viel größer (9×9 statt 5×5 Grundstücke)! Jede NEUE Farm bekommt außerdem ihren eigenen, zufällig geschlängelten Fluss mit neuer, animierter, schimmernder Wassertextur – alte Spielstände bleiben dabei unverändert.',
+    'Neu: Bäume wachsen jetzt in unterschiedlichen Größen (klein bis groß) für mehr Abwechslung auf der Farm.',
+    'Neu: Herumlaufende Wildtiere! Schmetterlinge und Hasen streifen jetzt über deine Felder – rein dekorativ, aber lebendig. Es werden automatisch mehr, je größer deine Farm wird.',
+    'Neu: 9 weitere Deko-Objekte – Kiesweg, Pflasterweg, Weißer Zaun, Steinmauer, Sommerblumen, Wildblumen, Steinhaufen, Zierstrauch und eine Vogelscheuche.',
+    'Geändert: Grundstücke werden ab 1.000.000 Fenriy nicht mehr teurer – der Preis ist jetzt gedeckelt.'
+  ] },
   { version: '0.4.0', date: '2026-09-23', notes: [
     'Neu: Jahreszeiten! Frühling, Sommer, Herbst und Winter wechseln sich ab, färben die Farm um und beeinflussen leicht das Wachstum im Freien (Gewächshäuser & Produktionsstätten sind davon nicht betroffen).',
     'Neu: Zufällige Ereignisse – ab und zu erscheint kurz ein reisender Händler, eine Goldene Stunde oder ein Schatzfund. Einfach rechtzeitig anklicken!',

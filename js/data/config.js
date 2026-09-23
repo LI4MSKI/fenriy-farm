@@ -10,8 +10,8 @@ FF.config = {
 
   tile: 16,                  // Pixel pro Kachel (Grafik)
   plotSize: 8,               // Kacheln pro Grundstück (8x8)
-  worldPlots: { w: 5, h: 5 },// Anzahl Grundstücke (5x5)
-  startPlot: { x: 2, y: 2 }, // Start-Grundstück (Mitte)
+  worldPlots: { w: 9, h: 9 },// Anzahl Grundstücke (9x9 = riesige Karte, 81 Grundstücke)
+  startPlot: { x: 2, y: 2 }, // Start-Grundstück (bewusst nicht in der Mitte, damit alte Spielstände weiter passen)
 
   workerCarry: 6,            // So viele Ernten trägt ein Arbeiter, bevor er zum Markt läuft
   workerBonus: 1.1,          // Arbeiter verkaufen mit +10 % Aufschlag auf dem Markt
@@ -25,9 +25,10 @@ FF.config = {
    * 'https://fenriy-farm-server.onrender.com' (OHNE Schrägstrich am Ende). */
   leaderboardUrl: '',
 
-  /* Preis für das n-te gekaufte Grundstück (n = 1 ... 24) */
+  /* Preis für das n-te gekaufte Grundstück. Steigt exponentiell, aber ab plotPriceCap wird's nicht mehr teurer. */
+  plotPriceCap: 1000000,
   plotPrice: function (n) {
-    return FF.config.nice(1000 * Math.pow(2.15, n - 1));
+    return FF.config.nice(Math.min(FF.config.plotPriceCap, 1000 * Math.pow(2.15, n - 1)));
   },
 
   /* Rundet Preise auf "schöne" Zahlen (2 wertige Ziffern) */
