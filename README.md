@@ -38,6 +38,10 @@ Alle Spielinhalte stehen als einfache Listen in `js/data/`. **Ein neuer Eintrag 
 
 `art.type` kann `tall`, `root`, `bush` oder `vine` sein. Mit `big: true` werden die Früchte größer.
 
+### Baumgrößen (`js/data/trees.js`)
+
+Jeder Baum kann optional `art.size` (z. B. `0.8` bis `1.4`) bekommen – rein optisch, verändert nur die Zeichengröße (bodenverankert), nicht das Kachel-Feld (bleibt immer 1×1).
+
 ### Neuer Baum (`js/data/trees.js`)
 
 ```js
@@ -60,7 +64,15 @@ Vorhandene Effekte: `harvester`, `autosow`, `growth`, `price`, `capacity`, `work
 
 ### Flüsse & Deko (`js/data/decor.js`)
 
-Ein Fluss ist ein Deko-Eintrag mit `art.type: 'water'` (verbindet sich wie ein Weg mit Nachbarkacheln). Neue Deko genauso als Eintrag ergänzen.
+Ein Fluss ist ein Deko-Eintrag mit `art.type: 'water'` (verbindet sich wie ein Weg mit Nachbarkacheln, plus animiertes Schimmern beim Zeichnen, siehe `waterShimmer()` in `js/core/render.js`). Wege (`'path'`), Zäune (`'fence'`) und Blumenbeete (`'flowers'`) unterstützen mehrere Farbvarianten als eigene Einträge (z. B. Kiesweg, Pflasterweg, Weißer Zaun, Sommerblumen). Eigenständige Deko wie Heuballen, Laterne, Steinhaufen, Zierstrauch oder Vogelscheuche nutzt einen eigenen `art.type` mit passendem `case` in `art.decor` (`js/core/sprites.js`). Neue Deko genauso als Eintrag ergänzen.
+
+### Zufällige Welt & Flüsse (`js/core/worldgen.js`)
+
+Bei jedem **neuen** Spielstand (`FF.newState()`) erzeugt `FF.worldgen.makeRiver()` einen zufällig geschlängelten Fluss quer über die Karte (Start-Grundstück bleibt immer frei). Bestehende Spielstände sind davon nie betroffen – der Fluss wird nur einmal, bei der Erstellung eines neuen Spiels, generiert. Die Weltgröße steht in `js/data/config.js` bei `worldPlots` (Standard 9×9 Grundstücke).
+
+### Herumlaufende Wildtiere (`js/core/wildlife.js`)
+
+Schmetterlinge und Hasen (`FF.wildlife`) wandern rein dekorativ über die Karte, auch durch bebaute Felder. Sie werden nicht gespeichert, sondern bei jedem Laden/Neustart neu verteilt; die Anzahl skaliert automatisch mit der Anzahl gekaufter Grundstücke (`FF.syncWildlife()`, ausgelöst über das `'plot'`-Event). Neue Arten lassen sich in `art.wild()` (`js/core/sprites.js`) und der Typ-Liste in `wildlife.js` ergänzen.
 
 ### Produktionsstätten (`js/data/factories.js`)
 
@@ -105,7 +117,7 @@ Der Monolog des alten Bauern steht in `buildSteps()`, jede `say('Alter Bauer', '
 ### Update veröffentlichen
 
 1. Änderungen in den Dateien machen.
-2. In `index.html` die Zeile `window.FF_BUILD = '0.4.0';` hochzählen (z. B. `'0.4.1'`). Dadurch laden alle Spieler automatisch die neuen Dateien statt der alten aus dem Browser-Cache.
+2. In `index.html` die Zeile `window.FF_BUILD = '0.5.0';` hochzählen (z. B. `'0.5.1'`). Dadurch laden alle Spieler automatisch die neuen Dateien statt der alten aus dem Browser-Cache.
 3. Einen Eintrag in `js/data/changelog.js` ergänzen.
 4. Dateien auf GitHub hochladen.
 
@@ -114,6 +126,8 @@ Der Monolog des alten Bauern steht in `buildSteps()`, jede `say('Alter Bauer', '
 ### Wenn sich das Speicherformat ändert
 
 Erhöhe `saveVersion` in `js/data/config.js` und ergänze in `js/core/state.js` unter `MIGRATIONS` eine Funktion, die alte Spielstände umbaut. Fehlende Felder werden sonst automatisch mit Standardwerten aufgefüllt.
+
+Der Grundstückspreis steigt exponentiell mit jedem gekauften Grundstück, ist aber über `plotPriceCap` (Standard 1.000.000) gedeckelt – wird also ab dieser Summe nicht mehr teurer (`js/data/config.js`, `plotPrice`).
 
 ## Preise abstimmen
 
@@ -129,7 +143,7 @@ Ein Bot spielt das Spiel gierig durch und zeigt, wann er welche Meilensteine err
 index.html          Startseite, lädt alle Scripts (FF_BUILD = Version)
 css/style.css       Aussehen der Oberfläche
 js/data/            Spielinhalt (hier arbeitest du für Updates)
-js/core/            Spiel-Engine (Logik, Grafik, Eingabe, Oberfläche, Arbeiter, Musik, Einführung, Jahreszeiten, Ereignisse)
+js/core/            Spiel-Engine (Logik, Grafik, Eingabe, Oberfläche, Arbeiter, Musik, Einführung, Jahreszeiten, Ereignisse, Weltgenerierung, Wildtiere)
 tools/balance-sim.js  Wirtschafts-Simulation
 server/              Optionaler Bestenlisten-Server (separat deployen, siehe server/README.md)
 ```
