@@ -16,7 +16,7 @@
     Neue Script-Dateien einfach in die Liste "files" eintragen.
   -->
   <script>
-    window.FF_BUILD = '0.3.0';
+    window.FF_BUILD = '0.4.0';
     (function () {
       var files = [
         'js/core/boot.js',
@@ -38,6 +38,9 @@
         'js/core/audio.js',
         'js/core/cutscene.js',
         'js/core/weather.js',
+        'js/core/season.js',
+        'js/core/events.js',
+        'js/core/leaderboard.js',
         'js/core/render.js',
         'js/core/input.js',
         'js/core/ui.js',
@@ -68,6 +71,14 @@
       <div class="goal-line"><span id="rank">Kleiner Bauer</span><span id="goalText"></span></div>
       <div class="bar"><i id="goalBar"></i></div>
     </div>
+    <div class="box hud-season" id="hudSeason" title="Jahreszeit"><span id="seasonLabel"></span></div>
+  </div>
+
+  <div id="eventCard" class="hidden">
+    <div id="eventTitle"></div>
+    <div id="eventDesc"></div>
+    <button class="btn good" id="eventBtn">Einsammeln</button>
+    <div class="bar"><i id="eventBar"></i></div>
   </div>
 
   <div id="zoomBtns">

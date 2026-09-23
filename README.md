@@ -74,6 +74,18 @@ Liefern selbst einen kleinen Ertrag und beschleunigen zusätzlich das Wachstum A
 
 Seltener, kurzer Regen (manchmal ein Gewitter mit Blitz & Donner), der das Wachstum kurzzeitig beschleunigt. Häufigkeit und Dauer oben in der Datei bei `MIN_GAP`/`MAX_GAP`/`MIN_DUR`/`MAX_DUR` einstellbar.
 
+### Jahreszeiten (`js/core/season.js`)
+
+Frühling, Sommer, Herbst und Winter wechseln sich automatisch ab (Dauer über `DUR` einstellbar, Standard 5 Minuten aktive Spielzeit pro Jahreszeit). Färbt Wiese und Bäume um (siehe `SEASON_GRASS` bzw. die Mix-Farben in `art.tree` in `js/core/sprites.js`) und multipliziert das Wachstum im Freien leicht (`MULT`-Tabelle, Sommer etwas schneller, Winter etwas langsamer). Produktionsstätten und Gewächshäuser sind "drinnen" und bleiben unbeeinflusst – ein guter Grund, im Winter ein Gewächshaus zu bauen.
+
+### Zufällige Ereignisse (`js/core/events.js`)
+
+Ab und zu (Standard: alle 5–10 Minuten aktiver Spielzeit) erscheint oben eine Karte mit einem von drei Ereignissen, die innerhalb von 25 Sekunden angeklickt werden muss: **Reisender Händler** (-20 % Baukosten), **Goldene Stunde** (+25 % Verkaufspreise, je 45 Sekunden) oder **Schatzfund** (sofortiger Fenriy-Bonus). Zeiten stehen oben in der Datei bei `GAP_MIN`/`GAP_MAX`/`OFFER_WIN`/`BUFF_DUR`, neue Ereignis-Typen lassen sich im `TYPES`-Objekt ergänzen.
+
+### Bestenliste (`js/core/leaderboard.js` + `server/`)
+
+Optional: ein kleiner, kostenloser Server (Code liegt in `server/`, Anleitung in `server/README.md`) nimmt Scores entgegen und zeigt die Top 10. Ohne Server zeigt das Menü nur einen Hinweis. Nach dem Deploy die Server-Adresse in `js/data/config.js` bei `leaderboardUrl` eintragen.
+
 ### Arbeiter
 
 Arbeiter (Upgrade *Arbeiter*) laufen selbstständig zu reifen Feldern, Bäumen und Tierfarmen, ernten, säen leere Felder neu, tragen die Ware zur Scheune und verkaufen sie mit Bonus. Einstellungen in `js/data/config.js`: `workerCarry` (wie viel sie tragen) und `workerBonus` (Verkaufsaufschlag). Das Verhalten steht in `js/core/workers.js`.
@@ -93,7 +105,7 @@ Der Monolog des alten Bauern steht in `buildSteps()`, jede `say('Alter Bauer', '
 ### Update veröffentlichen
 
 1. Änderungen in den Dateien machen.
-2. In `index.html` die Zeile `window.FF_BUILD = '0.3.0';` hochzählen (z. B. `'0.3.1'`). Dadurch laden alle Spieler automatisch die neuen Dateien statt der alten aus dem Browser-Cache.
+2. In `index.html` die Zeile `window.FF_BUILD = '0.4.0';` hochzählen (z. B. `'0.4.1'`). Dadurch laden alle Spieler automatisch die neuen Dateien statt der alten aus dem Browser-Cache.
 3. Einen Eintrag in `js/data/changelog.js` ergänzen.
 4. Dateien auf GitHub hochladen.
 
@@ -117,8 +129,9 @@ Ein Bot spielt das Spiel gierig durch und zeigt, wann er welche Meilensteine err
 index.html          Startseite, lädt alle Scripts (FF_BUILD = Version)
 css/style.css       Aussehen der Oberfläche
 js/data/            Spielinhalt (hier arbeitest du für Updates)
-js/core/            Spiel-Engine (Logik, Grafik, Eingabe, Oberfläche, Arbeiter, Musik, Einführung)
+js/core/            Spiel-Engine (Logik, Grafik, Eingabe, Oberfläche, Arbeiter, Musik, Einführung, Jahreszeiten, Ereignisse)
 tools/balance-sim.js  Wirtschafts-Simulation
+server/              Optionaler Bestenlisten-Server (separat deployen, siehe server/README.md)
 ```
 
 ## Hinweis zu Fenriy
