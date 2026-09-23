@@ -87,7 +87,9 @@
   /* Migrationen: Wenn du das Speicherformat änderst, C.saveVersion um 1 erhöhen
    * und hier eine Funktion unter der ALTEN Versionsnummer ergänzen. */
   const MIGRATIONS = {
-    // 1: function (S) { /* S von Version 1 auf 2 umbauen */ }
+    // 0.5.0 hat kurzzeitig automatisch Flüsse generiert (wieder entfernt in 0.6.0) - bei jedem
+    // Spielstand, der das noch enthält, einmalig alle Wasser-Kacheln entfernen.
+    1: function (S) { S.ents = S.ents.filter(function (e) { return !(e.k === 'decor' && e.t === 'water'); }); }
   };
 
   FF.parseSave = function (text) {
