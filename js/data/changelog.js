@@ -1,5 +1,9 @@
 /* NEUIGKEITEN - neueste Version zuerst */
 FF.content.changelog.push(
+  { version: '0.7.1', date: '2026-09-24', notes: [
+    'Verbessert: Traktoren sehen jetzt größer und realistischer aus (großes profiliertes Hinterrad, kleineres Vorderrad, Motorhaube mit Kühlergrill, offene Kabine mit Dach, Auspuffrohr).',
+    'Neu: Traktoren haben ein breites Mähwerk und bearbeiten dadurch automatisch immer bis zu drei reife Felder nebeneinander in einem Arbeitsgang.'
+  ] },
   { version: '0.7.0', date: '2026-09-24', notes: [
     'Riesen-Update: Neue Kategorie Minen! Kohle-, Eisen-, Gold- und Edelsteinmine graben automatisch nach Erz. Sehr teuer und mit langer Amortisationszeit, dafür bringen sie im Endgame ordentlich Fenriy ein. Zu finden im Baumenü unter "Minen". Arbeiter können auch Minen bedienen.',
     'Neu: Traktoren ersetzen den alten Erntehelfer! Sie fahren sichtbar über die Farm, mähen reife Felder ab und säen sofort wieder ein – in vier Farben (grün, rot, gelb, blau). Bereits gekaufte Erntehelfer-Stufen werden automatisch in Traktoren umgewandelt.',
