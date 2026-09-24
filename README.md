@@ -90,7 +90,9 @@ Endgame-Kategorie: Arbeiter graben nach Erz. Funktionieren mechanisch wie Produk
 
 ### Traktoren (`js/core/tractors.js`)
 
-Das Upgrade *Traktoren* (Effekt `tractors`) stellt sichtbare Traktoren auf den Hof, die selbstständig zu reifen Feldern fahren, sie abernten und sofort wieder einsäen – unabhängig vom Sämaschine-Upgrade. Anders als Arbeiter kümmern sie sich nur um Felder (keine Bäume/Tierfarmen/Fabriken/Minen) und tragen nichts zur Scheune, sondern verkaufen direkt auf dem Feld. Skins (`green`, `red`, `yellow`, `blue`) werden reihum vergeben (`art.tractor` in `js/core/sprites.js`). Ist mindestens ein Traktor gekauft, sammelt außerdem die Offline-Berechnung (`FF.offline`) beim Wiedereinstieg automatisch alles Fertige ein (Felder wie auch Bäume, Tierfarmen, Fabriken, Gewächshäuser und Minen).
+Das Upgrade *Traktoren* (Effekt `tractors`) stellt sichtbare Traktoren auf den Hof, die selbstständig zu reifen Feldern fahren, sie abernten und sofort wieder einsäen – unabhängig vom Sämaschine-Upgrade. Anders als Arbeiter kümmern sie sich nur um Felder (keine Bäume/Tierfarmen/Fabriken/Minen) und tragen nichts zur Scheune, sondern verkaufen direkt auf dem Feld. Sie haben ein breites Mähwerk und bearbeiten dabei automatisch bis zu drei reife Felder nebeneinander in derselben Reihe auf einmal (reife linke/rechte Nachbarfelder werden im selben Arbeitsgang mit erledigt). Skins (`green`, `red`, `yellow`, `blue`) werden reihum vergeben, Textur in `art.tractor` (`js/core/sprites.js`, 22×18 Kacheln groß). Ist mindestens ein Traktor gekauft, sammelt außerdem die Offline-Berechnung (`FF.offline`) beim Wiedereinstieg automatisch alles Fertige ein (Felder wie auch Bäume, Tierfarmen, Fabriken, Gewächshäuser und Minen).
+
+**Hinweis für neue Pixel-Art:** `U.shade()` (`js/core/util.js`) erwartet vollständige 6-stellige Hex-Farben (`#555555`), keine 3-stelligen Kurzformen (`#555`) – letztere ergeben bei `U.shade()` eine falsche Farbe (funktionieren aber problemlos, wenn direkt ohne `U.shade()` verwendet).
 
 ### Wetter (`js/core/weather.js`)
 
