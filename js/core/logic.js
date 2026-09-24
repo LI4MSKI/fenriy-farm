@@ -4,10 +4,10 @@
   const rt = FF.rt = { recent: [], rate: 0, rateT: 0, rankIdx: 0, toastAt: {} };
 
   /* ---------- Upgrade-Werte (Wachstum, Preis, ...) ---------- */
-  FF.M = { growth: 1, price: 1, capacity: 5, harvester: 0, autosow: 0, workers: 0, workerSpeed: 1 };
+  FF.M = { growth: 1, price: 1, capacity: 5, tractors: 0, autosow: 0, workers: 0, workerSpeed: 1 };
   FF.recalc = function () {
     const S = FF.state;
-    const M = { growth: 1, price: 1, capacity: 5, harvester: 0, autosow: 0, workers: 0, workerSpeed: 1 };
+    const M = { growth: 1, price: 1, capacity: 5, tractors: 0, autosow: 0, workers: 0, workerSpeed: 1 };
     FF.content.upgrades.forEach(function (u) {
       const lvl = S.upg[u.id] || 0;
       const v = lvl > 0 ? u.values[Math.min(lvl, u.values.length) - 1] : u.base;
@@ -15,7 +15,7 @@
         case 'growth': M.growth *= v; break;
         case 'price': M.price *= v; break;
         case 'capacity': M.capacity = Math.max(M.capacity, v); break;
-        case 'harvester': if (v > 0) M.harvester = M.harvester > 0 ? Math.min(M.harvester, v) : v; break;
+        case 'tractors': M.tractors = Math.max(M.tractors, v); break;
         case 'autosow': if (v > 0) M.autosow = 1; break;
         case 'workers': M.workers = Math.max(M.workers, v); break;
         case 'workerspeed': M.workerSpeed *= v; break;
@@ -31,6 +31,7 @@
     }
     FF.M = M;
     if (FF.syncWorkers) FF.syncWorkers();
+    if (FF.syncTractors) FF.syncTractors();
   };
 
   FF.toastOnce = function (key, msg, type, gap) {
@@ -81,8 +82,8 @@
         if (!e.c) continue;
         const c = FF.find('crops', e.c);
         if (c && e.p < c.time) e.p = Math.min(c.time, e.p + dt * g * wm * sm);
-      } else if (e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green') {
-        const d = e.k === 'tree' ? FF.find('trees', e.t) : e.k === 'pen' ? FF.find('animals', e.t) : e.k === 'factory' ? FF.find('factories', e.t) : FF.find('greenhouses', e.t);
+      } else if (e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green' || e.k === 'mine') {
+        const d = FF.defOf(e);
         if (!d) continue;
         if (e.n >= cap) { e.p = 0; continue; }
         const outdoor = (e.k === 'tree' || e.k === 'pen') ? sm : 1;
@@ -205,7 +206,7 @@
       }
       return null;
     }
-    if ((e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green') && e.n > 0) { FF.collect(e); return 'collect'; }
+    if ((e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green' || e.k === 'mine') && e.n > 0) { FF.collect(e); return 'collect'; }
     if (e.k === 'decor') {
       const d = FF.find('decor', e.t);
       if (d && d.art.type === 'fence' && FF.state.corral && FF.state.corral.n > 0) { FF.collectCorral(e.x, e.y); return 'collect'; }
@@ -221,7 +222,7 @@
     for (let i = 0; i < ents.length; i++) {
       const e = ents[i];
       if (e.k === 'field' && FF.fieldReady(e)) { total += FF.harvestField(e, true); count++; }
-      else if ((e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green') && e.n > 0) { total += FF.collect(e, true); count++; }
+      else if ((e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green' || e.k === 'mine') && e.n > 0) { total += FF.collect(e, true); count++; }
       else if (e.k === 'field' && !e.c && FF.M.autosow && e.last) {
         const c = FF.find('crops', e.last);
         if (c && S.crops[e.last] && S.money >= c.seed) { S.money -= c.seed; e.c = e.last; e.p = 0; }
@@ -235,10 +236,10 @@
   /* ---------- Bauen ---------- */
   FF.itemCost = function (kind, def) {
     const base = kind === 'field' ? C.fieldCost : def.cost;
-    const cm = (kind === 'field' || kind === 'tree' || kind === 'pen' || kind === 'factory' || kind === 'green') && FF.events ? FF.events.costMult : 1;
+    const cm = (kind === 'field' || kind === 'tree' || kind === 'pen' || kind === 'factory' || kind === 'green' || kind === 'mine') && FF.events ? FF.events.costMult : 1;
     return Math.max(1, Math.round(base * cm));
   };
-  FF.itemSize = function (kind, def) { return (kind === 'pen' || kind === 'factory' || kind === 'green') ? { w: def.w, h: def.h } : { w: 1, h: 1 }; };
+  FF.itemSize = function (kind, def) { return (kind === 'pen' || kind === 'factory' || kind === 'green' || kind === 'mine') ? { w: def.w, h: def.h } : { w: 1, h: 1 }; };
 
   /* Voraussetzung für Produktionsstätten (z.B. erst Weizen freischalten oder Schweinestall bauen) */
   FF.factoryReady = function (f) {
@@ -277,7 +278,7 @@
     let e;
     if (kind === 'field') e = { k: 'field', x: x, y: y, w: 1, h: 1, c: null, p: 0, last: null };
     else if (kind === 'tree') e = { k: 'tree', x: x, y: y, w: 1, h: 1, t: def.id, p: 0, n: 0 };
-    else if (kind === 'pen' || kind === 'factory' || kind === 'green') e = { k: kind, x: x, y: y, w: s.w, h: s.h, t: def.id, p: 0, n: 0 };
+    else if (kind === 'pen' || kind === 'factory' || kind === 'green' || kind === 'mine') e = { k: kind, x: x, y: y, w: s.w, h: s.h, t: def.id, p: 0, n: 0 };
     else e = { k: 'decor', x: x, y: y, w: 1, h: 1, t: def.id };
     S.money -= cost;
     S.ents.push(e);
@@ -301,7 +302,7 @@
     if (e.k === 'field') cost = C.fieldCost;
     else { const d = FF.defOf(e); cost = d ? d.cost : 0; }
     // Vorrat noch schnell mitnehmen
-    if ((e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green') && e.n > 0) FF.collect(e);
+    if ((e.k === 'tree' || e.k === 'pen' || e.k === 'factory' || e.k === 'green' || e.k === 'mine') && e.n > 0) FF.collect(e);
     const refund = Math.floor(cost * C.refund);
     S.money += refund;
     const wasFence = e.k === 'decor' && (function () { const d = FF.find('decor', e.t); return d && d.art.type === 'fence'; })();
@@ -355,7 +356,7 @@
     S.money -= cost;
     S.upg[id] = (S.upg[id] || 0) + 1;
     FF.recalc();
-    FF.emit('toast', { msg: u.effect === 'workers' ? 'Neuer Arbeiter eingestellt!' : u.name + ' verbessert!', type: 'good' });
+    FF.emit('toast', { msg: u.effect === 'workers' ? 'Neuer Arbeiter eingestellt!' : u.effect === 'tractors' ? 'Neuer Traktor gekauft!' : u.name + ' verbessert!', type: 'good' });
     return null;
   };
 
@@ -364,7 +365,7 @@
   FF.itemRate = function (kind, def) {
     const g = FF.M.growth, pm = FF.M.price;
     if (kind === 'crop') return (def.yield * pm - def.seed) / (def.time / g);
-    if (kind === 'tree' || kind === 'pen' || kind === 'factory' || kind === 'green') return def.value * pm / (def.interval / g);
+    if (kind === 'tree' || kind === 'pen' || kind === 'factory' || kind === 'green' || kind === 'mine') return def.value * pm / (def.interval / g);
     return 0;
   };
 
@@ -373,10 +374,8 @@
     const S = FF.state;
     S.playSec += dt;
     FF.advance(dt);
-    if (FF.M.harvester > 0) {
-      S.autoT += dt;
-      if (S.autoT >= FF.M.harvester) { S.autoT = 0; FF.autoSweep(); }
-    }
+    // Aktiv im Spiel übernehmen die Traktoren (Felder) und Arbeiter (alles) das automatische
+    // Einsammeln - kein unsichtbarer globaler Auto-Sweep mehr (siehe FF.offline für "während du weg warst").
     // Einkommen pro Sekunde (gleitender Durchschnitt über 15 s)
     rt.rateT += dt;
     if (rt.rateT >= 0.5) {
@@ -397,7 +396,7 @@
     const before = S.total;
     FF.advance(sec);
     let swept = 0;
-    if (FF.M.harvester > 0) swept = FF.autoSweep();
+    if (FF.M.tractors > 0) swept = FF.autoSweep();
     return { sec: sec, swept: swept, earned: S.total - before };
   };
 

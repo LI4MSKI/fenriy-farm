@@ -179,6 +179,23 @@
     stockLabel(e, px, py, w, labels);
   }
 
+  /* Mine: felsiges Gebäude + aufsteigender Staub aus dem Stollen */
+  function drawMine(e, d, t, labels) {
+    const px = e.x * T, py = e.y * T, w = e.w * T, h = e.h * T;
+    ctx.drawImage(art.mine(d), px, py);
+    const baseX = px + Math.round(w / 2), baseY = py + h - 6;
+    for (let i = 0; i < 3; i++) {
+      const ph = (t * 0.5 + i * 1.1) % 3;
+      const a = Math.max(0, 0.28 - ph * 0.09);
+      if (a <= 0) continue;
+      const sx = baseX + Math.sin(t * 0.5 + i * 2) * 4, sy = baseY - ph * 6;
+      const r = 2 + ph;
+      ctx.fillStyle = 'rgba(150,130,100,' + a.toFixed(2) + ')';
+      ctx.fillRect(Math.round(sx - r / 2), Math.round(sy - r / 2), Math.round(r), Math.round(r));
+    }
+    stockLabel(e, px, py, w, labels);
+  }
+
   /* Wo landet ein Gebäude, wenn man auf Kachel (tx,ty) zeigt? (Mitte = Zeiger) */
   R.anchor = function (tx, ty) {
     const sel = FF.buildSel;
@@ -206,6 +223,7 @@
     else if (sel.kind === 'pen') spr = art.pen(sel.def);
     else if (sel.kind === 'factory') spr = art.factory(sel.def);
     else if (sel.kind === 'green') spr = art.greenhouse(sel.def);
+    else if (sel.kind === 'mine') spr = art.mine(sel.def);
     else spr = art.decor(sel.def, 0);
     ctx.globalAlpha = 0.7;
     if (sel.kind === 'tree') drawTree(spr, sel.def, x0, y0);
@@ -271,6 +289,7 @@
         case 'pen': objs.push({ y: (e.y + e.h) * T, e: e, d: FF.find('animals', e.t) }); break;
         case 'factory': objs.push({ y: (e.y + e.h) * T, e: e, d: FF.find('factories', e.t) }); break;
         case 'green': objs.push({ y: (e.y + e.h) * T, e: e, d: FF.find('greenhouses', e.t) }); break;
+        case 'mine': objs.push({ y: (e.y + e.h) * T, e: e, d: FF.find('mines', e.t) }); break;
         case 'house': case 'barn': objs.push({ y: (e.y + e.h) * T, e: e }); break;
       }
     }
@@ -311,6 +330,7 @@
     const f = FF.farmer;
     objs.push({ y: f.y + 2, farmer: true });
     FF.workers.forEach(function (w) { objs.push({ y: w.y + 2, worker: w }); });
+    if (FF.tractors) FF.tractors.forEach(function (tr) { objs.push({ y: tr.y + 2, tractor: tr }); });
     if (FF.wildlife) FF.wildlife.forEach(function (c) { objs.push({ y: c.y + 2, critter: c }); });
     if (FF.cutscene && FF.cutscene.active) FF.cutscene.objects(objs);
     objs.sort(function (a, b) { return a.y - b.y; });
@@ -336,6 +356,14 @@
         else ctx.drawImage(spr, Math.round(f.x) - 6, Math.round(f.y) - 14 + bob);
         continue;
       }
+      if (o.tractor) {
+        const tr = o.tractor;
+        const spr = art.tractor(tr.skin, tr.moving ? Math.floor(tr.step) % 2 : 0);
+        const tx = Math.round(tr.x), ty = Math.round(tr.y) - 15;
+        if (tr.flip) { ctx.save(); ctx.translate(tx + 9, ty); ctx.scale(-1, 1); ctx.drawImage(spr, 0, 0); ctx.restore(); }
+        else ctx.drawImage(spr, tx - 9, ty);
+        continue;
+      }
       if (o.critter) {
         const c = o.critter;
         const wspr = art.wild(c.kind, c.v, Math.floor(c.step) % 2);
@@ -350,6 +378,7 @@
         case 'pen': if (o.d) drawPen(e, o.d, t, labels); break;
         case 'factory': if (o.d) drawFactory(e, o.d, t, labels); break;
         case 'green': if (o.d) drawGreenhouse(e, o.d, t, labels); break;
+        case 'mine': if (o.d) drawMine(e, o.d, t, labels); break;
         case 'house': ctx.drawImage(art.house(), e.x * T, e.y * T); break;
         case 'barn': ctx.drawImage(art.barn(), e.x * T, e.y * T); break;
         case 'decor': if (o.d) ctx.drawImage(art.decor(o.d, o.d.art.type === 'fence' ? neighborMask(e, 'fence') : 0), e.x * T, e.y * T); break;

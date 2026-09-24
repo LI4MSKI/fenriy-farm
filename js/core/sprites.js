@@ -255,6 +255,26 @@
     });
   };
 
+  /* Traktor (vier Farben, zwei Fahr-Bilder). Fährt reife Felder ab, siehe js/core/tractors.js. */
+  const TRACTOR_SKIN = {
+    green: ['#4fa83f', '#2f7a2a'], red: ['#d9483a', '#8a2318'],
+    yellow: ['#f2c94c', '#b8860b'], blue: ['#4a86c5', '#264f7a']
+  };
+  art.tractor = function (skin, frame) {
+    const c = TRACTOR_SKIN[skin] || TRACTOR_SKIN.green, f = frame ? 1 : 0;
+    return cached('tractor_' + skin + '_' + f, 18, 16, function (g) {
+      R(g, 'rgba(0,0,0,0.18)', 2, 14, 14, 2);
+      if (f) R(g, 'rgba(255,255,255,0.3)', 0, 12, 2, 1);
+      R(g, '#222', 1, 8, 6, 6); R(g, '#666', 3, 10, 2, 2);
+      R(g, '#222', 12, 10, 4, 4); R(g, '#666', 13, 11, 2, 2);
+      R(g, c[0], 3, 6, 11, 4); R(g, c[1], 3, 9, 11, 1);
+      R(g, U.shade(c[0], 30), 4, 6, 9, 1);
+      R(g, c[0], 12, 7, 4, 3); R(g, c[1], 12, 9, 4, 1);
+      R(g, c[1], 4, 1, 6, 6); R(g, '#bfe6ff', 5, 2, 4, 3); R(g, 'rgba(255,255,255,0.4)', 5, 2, 1, 3);
+      R(g, '#333', 13, 2, 1, 5); R(g, '#555', 13, 1, 1, 1);
+    });
+  };
+
   /* Bauern-Figur (zwei Lauf-Bilder) */
   art.farmer = function (frame) {
     const f = frame ? 1 : 0;
@@ -544,6 +564,10 @@
       case 'bread': R(g, '#d9a054', x, y, 6, 4); R(g, '#f2c374', x + 1, y, 4, 1); R(g, '#8a5a24', x, y + 3, 6, 1); break;
       case 'meat': R(g, '#c0392b', x, y, 6, 4); R(g, '#e8a0a0', x + 1, y, 3, 1); R(g, '#7a2318', x, y + 3, 6, 1); break;
       case 'cheese': R(g, '#f2c94c', x, y, 6, 4); R(g, '#fff3b0', x + 1, y, 2, 1); R(g, '#c99a1a', x, y + 3, 6, 1); break;
+      case 'coal': R(g, '#2a2a2a', x, y, 6, 4); R(g, '#4a4a4a', x + 1, y, 2, 1); R(g, '#5a5a5a', x + 3, y + 2, 2, 1); R(g, '#111', x, y + 3, 6, 1); break;
+      case 'iron': R(g, '#9a9aa0', x, y, 6, 4); R(g, '#dcdce2', x + 1, y, 3, 1); R(g, '#6a6a70', x, y + 3, 6, 1); break;
+      case 'gold': R(g, '#e8b923', x, y, 6, 4); R(g, '#fce27a', x + 1, y, 3, 1); R(g, '#9a7300', x, y + 3, 6, 1); break;
+      case 'gem': R(g, '#7a5fd9', x + 1, y, 4, 3); R(g, '#b39ff0', x + 2, y, 2, 1); R(g, '#4a3494', x + 1, y + 3, 4, 1); R(g, '#c9b8ff', x, y + 1, 1, 1); break;
       default: R(g, '#cccccc', x, y, 6, 4);
     }
   }
@@ -582,6 +606,26 @@
       });
     });
   };
+  art.mine = function (def) {
+    const a = def.art, w = def.w * 16, h = def.h * 16, ry = Math.round(h * 0.3);
+    return cached('mine_' + def.id, w, h, function (g) {
+      R(g, 'rgba(0,0,0,0.15)', 2, h - 3, w - 4, 2);
+      // felsiger Hügel
+      R(g, a.rock, 0, ry, w, h - ry - 2);
+      for (let x = 0; x < w; x += 3) R(g, U.shade(a.rock, (x / 3) % 2 ? 12 : -12), x, ry + 1, 2, h - ry - 4);
+      R(g, U.shade(a.rock, -35), 0, h - 4, w, 2);
+      R(g, a.rockdark, 2, ry - 2, w - 4, 3);
+      R(g, U.shade(a.rockdark, 22), 2, ry - 2, w - 4, 1);
+      // Stollen-Eingang mit Holzrahmen
+      const dw = Math.max(6, Math.round(w * 0.36)), dx = Math.round(w / 2 - dw / 2);
+      R(g, '#6b4423', dx - 2, h - 12, dw + 4, 2);
+      R(g, '#6b4423', dx - 2, h - 11, 2, 9); R(g, '#6b4423', dx + dw, h - 11, 2, 9);
+      R(g, U.shade('#6b4423', 25), dx - 2, h - 12, dw + 4, 1);
+      R(g, '#161109', dx, h - 9, dw, 7);
+      // Erz-Lore/Icon vor dem Eingang
+      productIcon(g, a.icon, dx + Math.round(dw / 2) - 3, h - 8);
+    });
+  };
 
   /* ---------- Sonstiges ---------- */
   art.coin = function () {
@@ -617,6 +661,7 @@
       case 'decor': src = art.decor(def, def.art.type === 'path' ? 15 : def.art.type === 'fence' ? 10 : def.art.type === 'water' ? 15 : 0); break;
       case 'factory': src = art.factory(def); break;
       case 'green': src = art.greenhouse(def); break;
+      case 'mine': src = art.mine(def); break;
       case 'field': src = art.field(null, 0); break;
       case 'house': src = art.house(); break;
       case 'barn': src = art.barn(); break;

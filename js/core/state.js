@@ -69,6 +69,7 @@
       case 'pen': return FF.find('animals', e.t);
       case 'factory': return FF.find('factories', e.t);
       case 'green': return FF.find('greenhouses', e.t);
+      case 'mine': return FF.find('mines', e.t);
       case 'decor': return FF.find('decor', e.t);
       default: return null;
     }
@@ -89,7 +90,12 @@
   const MIGRATIONS = {
     // 0.5.0 hat kurzzeitig automatisch Flüsse generiert (wieder entfernt in 0.6.0) - bei jedem
     // Spielstand, der das noch enthält, einmalig alle Wasser-Kacheln entfernen.
-    1: function (S) { S.ents = S.ents.filter(function (e) { return !(e.k === 'decor' && e.t === 'water'); }); }
+    1: function (S) { S.ents = S.ents.filter(function (e) { return !(e.k === 'decor' && e.t === 'water'); }); },
+    // 'Erntehelfer' (harvester) wurde durch 'Traktoren' (tractors) ersetzt - bereits gekaufte
+    // Stufen 1:1 übernehmen, damit niemand sein investiertes Fenriy verliert.
+    2: function (S) {
+      if (S.upg && S.upg.harvester) { S.upg.tractors = S.upg.harvester; delete S.upg.harvester; }
+    }
   };
 
   FF.parseSave = function (text) {
@@ -113,6 +119,7 @@
       if (e.k === 'pen') { const d = FF.find('animals', e.t); if (!d) return false; e.w = d.w; e.h = d.h; return true; }
       if (e.k === 'factory') { const d = FF.find('factories', e.t); if (!d) return false; e.w = d.w; e.h = d.h; return true; }
       if (e.k === 'green') { const d = FF.find('greenhouses', e.t); if (!d) return false; e.w = d.w; e.h = d.h; return true; }
+      if (e.k === 'mine') { const d = FF.find('mines', e.t); if (!d) return false; e.w = d.w; e.h = d.h; return true; }
       if (e.k === 'decor') { if (!FF.find('decor', e.t)) return false; e.w = 1; e.h = 1; return true; }
       if (e.k === 'field') { e.w = 1; e.h = 1; if (e.c && !FF.find('crops', e.c)) { e.c = null; e.p = 0; } return true; }
       return e.k === 'house' || e.k === 'barn';

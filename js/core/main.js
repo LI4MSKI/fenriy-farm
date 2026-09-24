@@ -24,6 +24,7 @@
     FF.ui.init();
     FF.farmerHome();
     if (FF.syncWorkers) FF.syncWorkers();
+    if (FF.syncTractors) FF.syncTractors();
     if (FF.syncWildlife) FF.syncWildlife();
     const sb = document.getElementById('soundBtn');
     function soundUi() { sb.classList.toggle('off', !FF.audio.music); }
@@ -35,7 +36,7 @@
       const away = (Date.now() - FF.state.savedAt) / 1000;
       const r = FF.offline(away);
       if (r) {
-        FF.ui.toast('Willkommen zurück! ' + (r.swept > 0 ? 'Dein Erntehelfer hat ' + FF.util.fmt(r.swept) + ' Fenriy eingesammelt.' : 'Deine Farm ist weitergewachsen.'), 'good');
+        FF.ui.toast('Willkommen zurück! ' + (r.swept > 0 ? 'Deine Traktoren haben ' + FF.util.fmt(r.swept) + ' Fenriy eingesammelt.' : 'Deine Farm ist weitergewachsen.'), 'good');
       }
     } else {
       FF.cutscene.start(FF.ui.showIntro);
@@ -68,6 +69,7 @@
       FF.update(dt);
       FF.updateFarmer(dt);
       FF.updateWorkers(dt);
+      if (FF.updateTractors) FF.updateTractors(dt);
       if (FF.updateWildlife) FF.updateWildlife(dt);
       FF.input.update(dt);
       FF.render.update(dt);

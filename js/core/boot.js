@@ -10,6 +10,7 @@ window.FF = {
     decor: [],      // Wege, Zäune, Deko
     factories: [],  // Produktionsstätten (verarbeiten Ernte zu Brot, Fleisch, Käse, ...)
     greenhouses: [],// Gewächshäuser (Wachstums-Bonus + eigener Ertrag)
+    mines: [],      // Minen (Arbeiter suchen nach Erzen, sehr teuer, viel Ertrag)
     upgrades: [],   // Upgrades
     ranks: [],      // Rang-Titel nach verdientem Fenriy
     changelog: []   // Neuigkeiten
