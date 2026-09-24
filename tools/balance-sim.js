@@ -82,10 +82,12 @@ function income(s) {
   const share = items > 0 ? Math.min(1, (W * 0.8 * sp) / items) : 0;
   const bonus = CFG.workerBonus || 1;
   // Traktoren: mähen & säen Felder automatisch neu, aber NUR Felder - kein Bonus (kein Scheunen-Umweg),
-  // dafür ohne Wartezeit auf den Spieler. Decken den von Arbeitern übrigen Feld-Anteil ab.
+  // dafür ohne Wartezeit auf den Spieler. Breites Mähwerk (bis zu 3 Felder nebeneinander pro
+  // Arbeitsgang) -> pro Traktor konservativ mit ca. 2,2x Durchsatz eines Einzelfelds angesetzt.
+  // Decken den von Arbeitern übrigen Feld-Anteil ab.
   const TR = up(s, 'tractors') || 0;
   const fieldLeft = fieldItems * (1 - share);
-  const trShare = fieldLeft > 0 ? Math.min(1, TR / fieldLeft) : 0;
+  const trShare = fieldLeft > 0 ? Math.min(1, (TR * 2.2) / fieldLeft) : 0;
   const fieldRate = bonus * share + (1 - share) * trShare * 1 + (1 - share) * (1 - trShare) * PLAYER_EFF;
   // Passive Anlagen (Bäume/Tiere/Fabriken/Gewächshäuser/Minen) werden nur von Arbeitern automatisch
   // abgeholt - sonst zählt die normale Spieler-Effizienz (manuelles Einsammeln zwischendurch).
