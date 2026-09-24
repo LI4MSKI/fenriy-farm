@@ -17,6 +17,6 @@ FF.content.trees.push(
   { id: 'olive',  name: 'Olivenbaum',   cost: 150000,  interval: 60, value: 1200,
     art: { trunk: '#7a6a55', leaf: '#8ea86a', leaf2: '#a9c286', fruit: '#3a3a1a', size: 1.2 } },
 
-  { id: 'golden', name: 'Fenriy-Baum',  cost: 1500000, interval: 90, value: 4500,
+  { id: 'golden', name: 'Fenriy-Baum',  cost: 1500000, interval: 75, value: 8000,
     art: { trunk: '#8a5a1a', leaf: '#e8b830', leaf2: '#ffe066', fruit: '#4fe3ff', size: 1.4 } }
 );

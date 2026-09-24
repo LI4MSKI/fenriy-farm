@@ -1,6 +1,6 @@
 /* UPGRADES
  * effect  legt fest, was das Upgrade bewirkt (wird in logic.js ausgewertet):
- *   'harvester'  values[]  = Sekunden zwischen automatischen Ernten
+ *   'tractors'   values[]  = Anzahl Traktoren (fahren reife Felder ab, mähen & säen sofort neu)
  *   'autosow'    (nur 1 Stufe) = geerntete Felder werden automatisch neu bepflanzt
  *   'growth'     values[]  = Wachstums-Geschwindigkeit (Faktor)
  *   'price'      values[]  = Verkaufspreis-Faktor
@@ -11,10 +11,10 @@
  * values[] Wert je Stufe (Stufe 0 = Grundwert steht in "base")
  */
 FF.content.upgrades.push(
-  { id: 'harvester', name: 'Erntehelfer', effect: 'harvester', base: 0,
-    desc: 'Sammelt reife Ernte & Produkte automatisch alle X Sekunden ein.',
+  { id: 'tractors', name: 'Traktoren', effect: 'tractors', base: 0,
+    desc: 'Traktoren fahren automatisch reife Felder ab, mähen (ernten) sie und säen sofort wieder ein.',
     costs:  [1500, 15000, 200000, 3000000, 40000000],
-    values: [30, 15, 8, 4, 2], unit: 's' },
+    values: [1, 2, 3, 4, 5], unit: '' },
 
   { id: 'autosow', name: 'Sämaschine', effect: 'autosow', base: 0,
     desc: 'Geerntete Felder werden automatisch mit der gleichen Pflanze neu bestellt.',

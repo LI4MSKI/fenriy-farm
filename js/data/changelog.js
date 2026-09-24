@@ -1,5 +1,11 @@
 /* NEUIGKEITEN - neueste Version zuerst */
 FF.content.changelog.push(
+  { version: '0.7.0', date: '2026-09-24', notes: [
+    'Riesen-Update: Neue Kategorie Minen! Kohle-, Eisen-, Gold- und Edelsteinmine graben automatisch nach Erz. Sehr teuer und mit langer Amortisationszeit, dafür bringen sie im Endgame ordentlich Fenriy ein. Zu finden im Baumenü unter "Minen". Arbeiter können auch Minen bedienen.',
+    'Neu: Traktoren ersetzen den alten Erntehelfer! Sie fahren sichtbar über die Farm, mähen reife Felder ab und säen sofort wieder ein – in vier Farben (grün, rot, gelb, blau). Bereits gekaufte Erntehelfer-Stufen werden automatisch in Traktoren umgewandelt.',
+    'Geändert: Der Fenriy-Baum wirft jetzt schneller und mehr Früchte ab und ist damit wieder klar der ertragreichste Baum.',
+    'Geändert: Grundstücke werden wieder immer teurer – der Preisdeckel bei 1.000.000 Fenriy aus 0.5.0 wurde entfernt.'
+  ] },
   { version: '0.6.1', date: '2026-09-23', notes: [
     'Fix: Flüsse, die durch die automatische Generierung aus 0.5.0 entstanden sind, werden jetzt bei jedem Spielstand automatisch entfernt (einmalig beim Laden, keine Aktion nötig).'
   ] },

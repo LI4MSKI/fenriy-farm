@@ -2,7 +2,7 @@
 FF.config = {
   version: window.FF_BUILD || '0.1.0',  // wird in index.html (FF_BUILD) hochgezählt
   saveKey: 'fenriyFarm.save',
-  saveVersion: 2,            // Bei Änderungen am Speicherformat erhöhen + Migration in state.js ergänzen
+  saveVersion: 3,            // Bei Änderungen am Speicherformat erhöhen + Migration in state.js ergänzen
 
   currency: 'Fenriy',
   goal: 100000000,           // Ziel: so viel Fenriy insgesamt verdienen
@@ -25,10 +25,9 @@ FF.config = {
    * 'https://fenriy-farm-server.onrender.com' (OHNE Schrägstrich am Ende). */
   leaderboardUrl: '',
 
-  /* Preis für das n-te gekaufte Grundstück. Steigt exponentiell, aber ab plotPriceCap wird's nicht mehr teurer. */
-  plotPriceCap: 1000000,
+  /* Preis für das n-te gekaufte Grundstück. Steigt immer weiter exponentiell (kein Deckel). */
   plotPrice: function (n) {
-    return FF.config.nice(Math.min(FF.config.plotPriceCap, 1000 * Math.pow(2.15, n - 1)));
+    return FF.config.nice(1000 * Math.pow(2.15, n - 1));
   },
 
   /* Zaun-Tiere: gebaute Zaun-Kacheln (jede Zaun-Art zählt) fangen wandernde Wildtiere ein.
