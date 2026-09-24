@@ -17,7 +17,7 @@ const ctx = { window: {}, console };
 ctx.window = ctx;
 vm.createContext(ctx);
 ['core/boot.js', 'data/config.js', 'data/crops.js', 'data/trees.js', 'data/animals.js',
- 'data/decor.js', 'data/upgrades.js', 'data/factories.js', 'data/greenhouses.js', 'data/ranks.js'].forEach(f => {
+ 'data/decor.js', 'data/upgrades.js', 'data/factories.js', 'data/greenhouses.js', 'data/mines.js', 'data/ranks.js'].forEach(f => {
   vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f });
 });
 const FF = ctx.FF;
@@ -51,13 +51,6 @@ function bestCrop(s) {
   }
   return { crop: best, rate: br };
 }
-function efficiency(s) {
-  const h = upLvl(s, 'harvester') > 0, a = upLvl(s, 'autosow') > 0;
-  if (h && a) return 1;
-  if (h) return 0.6;            // geerntet, aber Felder bleiben leer bis man neu sät
-  return PLAYER_EFF;
-}
-function passiveEff(s) { return upLvl(s, 'harvester') > 0 ? 1 : PLAYER_EFF; }
 function ghMult(s) {
   let m = 1;
   for (const gh of C.greenhouses) { const n = s.gh[gh.id] || 0; if (n && gh.growth) m *= Math.pow(1 + gh.growth, n); }
@@ -75,17 +68,29 @@ function income(s) {
   const g = growthMult(s), pm = up(s, 'price');
   const bc = bestCrop(s);
   const rawField = s.F * bc.rate;
-  let rawPas = 0, items = bc.crop ? s.F / (bc.crop.time / g) : 0;
-  for (const t of C.trees) { const n = s.trees[t.id] || 0; rawPas += n * t.value * pm / (t.interval / g); items += n / (t.interval / g); }
-  for (const a of C.animals) { const n = s.pens[a.id] || 0; rawPas += n * a.value * pm / (a.interval / g); items += n / (a.interval / g); }
-  for (const f of C.factories) { const n = s.facs[f.id] || 0; rawPas += n * f.value * pm / (f.interval / g); items += n / (f.interval / g); }
-  for (const gh of C.greenhouses) { const n = s.gh[gh.id] || 0; rawPas += n * gh.value * pm / (gh.interval / g); items += n / (gh.interval / g); }
-  // Arbeiter: ca. 0,8 Ernten/s pro Arbeiter (bei Tempo 1), ernten + säen neu + verkaufen mit Bonus
+  const fieldItems = bc.crop ? s.F / (bc.crop.time / g) : 0;
+  let rawPas = 0, pasItems = 0;
+  for (const t of C.trees) { const n = s.trees[t.id] || 0; rawPas += n * t.value * pm / (t.interval / g); pasItems += n / (t.interval / g); }
+  for (const a of C.animals) { const n = s.pens[a.id] || 0; rawPas += n * a.value * pm / (a.interval / g); pasItems += n / (a.interval / g); }
+  for (const f of C.factories) { const n = s.facs[f.id] || 0; rawPas += n * f.value * pm / (f.interval / g); pasItems += n / (f.interval / g); }
+  for (const gh of C.greenhouses) { const n = s.gh[gh.id] || 0; rawPas += n * gh.value * pm / (gh.interval / g); pasItems += n / (gh.interval / g); }
+  for (const m of C.mines) { const n = s.mines[m.id] || 0; rawPas += n * m.value * pm / (m.interval / g); pasItems += n / (m.interval / g); }
+  const items = fieldItems + pasItems;
+  // Arbeiter: ca. 0,8 Ernten/s pro Arbeiter (bei Tempo 1), ernten (+ Felder neu säen) + verkaufen mit Bonus.
+  // Arbeiter bedienen alle Anlagenarten (Felder, Bäume, Tiere, Fabriken, Gewächshäuser, Minen).
   const W = up(s, 'workers') || 0, sp = up(s, 'workerspeed') || 1;
   const share = items > 0 ? Math.min(1, (W * 0.8 * sp) / items) : 0;
   const bonus = CFG.workerBonus || 1;
-  const fEff = efficiency(s), pEff = passiveEff(s);
-  return rawField * (fEff * (1 - share) + bonus * share) + rawPas * (pEff * (1 - share) + bonus * share);
+  // Traktoren: mähen & säen Felder automatisch neu, aber NUR Felder - kein Bonus (kein Scheunen-Umweg),
+  // dafür ohne Wartezeit auf den Spieler. Decken den von Arbeitern übrigen Feld-Anteil ab.
+  const TR = up(s, 'tractors') || 0;
+  const fieldLeft = fieldItems * (1 - share);
+  const trShare = fieldLeft > 0 ? Math.min(1, TR / fieldLeft) : 0;
+  const fieldRate = bonus * share + (1 - share) * trShare * 1 + (1 - share) * (1 - trShare) * PLAYER_EFF;
+  // Passive Anlagen (Bäume/Tiere/Fabriken/Gewächshäuser/Minen) werden nur von Arbeitern automatisch
+  // abgeholt - sonst zählt die normale Spieler-Effizienz (manuelles Einsammeln zwischendurch).
+  const pasRate = bonus * share + (1 - share) * PLAYER_EFF;
+  return rawField * fieldRate + rawPas * pasRate;
 }
 function used(s) {
   let u = s.F;
@@ -93,13 +98,14 @@ function used(s) {
   for (const a of C.animals) u += (s.pens[a.id] || 0) * a.w * a.h;
   for (const f of C.factories) u += (s.facs[f.id] || 0) * f.w * f.h;
   for (const gh of C.greenhouses) u += (s.gh[gh.id] || 0) * gh.w * gh.h;
+  for (const m of C.mines) u += (s.mines[m.id] || 0) * m.w * m.h;
   return u;
 }
 function capacityTiles(s) {
   return Math.floor((s.plots * CFG.plotSize * CFG.plotSize - FIXED_TILES) * (1 - PATH_SHARE));
 }
 function clone(s) {
-  return { ...s, unl: { ...s.unl }, up: { ...s.up }, trees: { ...s.trees }, pens: { ...s.pens }, facs: { ...s.facs }, gh: { ...s.gh } };
+  return { ...s, unl: { ...s.unl }, up: { ...s.up }, trees: { ...s.trees }, pens: { ...s.pens }, facs: { ...s.facs }, gh: { ...s.gh }, mines: { ...s.mines } };
 }
 
 /* Wert pro Kachel der einzelnen Anlagen (für Ersetzen) */
@@ -112,6 +118,7 @@ function perTile(s) {
   for (const a of C.animals) if (s.pens[a.id]) list.push({ type: 'pen', id: a.id, size: a.w * a.h, count: s.pens[a.id], rate: a.value * pm / (a.interval / g) / (a.w * a.h), cost: a.cost });
   for (const f of C.factories) if (s.facs[f.id]) list.push({ type: 'factory', id: f.id, size: f.w * f.h, count: s.facs[f.id], rate: f.value * pm / (f.interval / g) / (f.w * f.h), cost: f.cost });
   for (const gh of C.greenhouses) if (s.gh[gh.id]) list.push({ type: 'green', id: gh.id, size: gh.w * gh.h, count: s.gh[gh.id], rate: gh.value * pm / (gh.interval / g) / (gh.w * gh.h), cost: gh.cost });
+  for (const m of C.mines) if (s.mines[m.id]) list.push({ type: 'mine', id: m.id, size: m.w * m.h, count: s.mines[m.id], rate: m.value * pm / (m.interval / g) / (m.w * m.h), cost: m.cost });
   return list.sort((x, y) => x.rate - y.rate);
 }
 function removeTiles(s, need) {
@@ -124,7 +131,8 @@ function removeTiles(s, need) {
     else if (w.type === 'tree') { s.trees[w.id]--; refund += w.cost * CFG.refund; }
     else if (w.type === 'pen') { s.pens[w.id]--; refund += w.cost * CFG.refund; }
     else if (w.type === 'factory') { s.facs[w.id]--; refund += w.cost * CFG.refund; }
-    else { s.gh[w.id]--; refund += w.cost * CFG.refund; }
+    else if (w.type === 'green') { s.gh[w.id]--; refund += w.cost * CFG.refund; }
+    else { s.mines[w.id]--; refund += w.cost * CFG.refund; }
   }
   return refund;
 }
@@ -153,6 +161,7 @@ function options(s) {
   for (const a of C.animals) add('Tier ' + a.name, a.cost, s2 => { const e = spaceFor(s2, a.w * a.h); if (e === null) return null; s2.pens[a.id] = (s2.pens[a.id] || 0) + 1; return e; });
   for (const f of C.factories) if (factoryReady(s, f)) add('Fabrik ' + f.name, f.cost, s2 => { const e = spaceFor(s2, f.w * f.h); if (e === null) return null; s2.facs[f.id] = (s2.facs[f.id] || 0) + 1; return e; });
   for (const gh of C.greenhouses) add('Gewächshaus ' + gh.name, gh.cost, s2 => { const e = spaceFor(s2, gh.w * gh.h); if (e === null) return null; s2.gh[gh.id] = (s2.gh[gh.id] || 0) + 1; return e; });
+  for (const m of C.mines) add('Mine ' + m.name, m.cost, s2 => { const e = spaceFor(s2, m.w * m.h); if (e === null) return null; s2.mines[m.id] = (s2.mines[m.id] || 0) + 1; return e; });
   for (const u of C.upgrades) {
     const lvl = s.up[u.id] || 0;
     if (lvl < u.costs.length) add('Upgrade ' + u.name + ' ' + (lvl + 1), u.costs[lvl], s2 => { s2.up[u.id] = lvl + 1; return 0; });
@@ -174,7 +183,7 @@ function options(s) {
 /* ------- Simulation ------- */
 let s = {
   money: CFG.startMoney, total: 0, t: 0,
-  plots: 1, F: 12, unl: { wheat: 1 }, up: {}, trees: {}, pens: {}, facs: {}, gh: {}
+  plots: 1, F: 12, unl: { wheat: 1 }, up: {}, trees: {}, pens: {}, facs: {}, gh: {}, mines: {}
 };
 const log = [];
 const milestones = [1e3, 1e4, 1e5, 1e6, 1e7, 5e7, CFG.goal];
@@ -208,14 +217,14 @@ while (s.total < CFG.goal && s.t < 3600 * 200 && guard++ < 20000) {
   const { money, total, t } = s;
   s = best.s2; s.money = money; s.total = total; s.t = t;
   if (best.plot) { /* plots++ ist schon in s2 */ }
-  if (guard % 1 === 0 && (best.name.startsWith('Pflanze') || best.name.startsWith('Tier') || best.name.startsWith('Baum') || best.name.startsWith('Upgrade') || best.name.startsWith('Grundstück') || best.name.startsWith('Fabrik') || best.name.startsWith('Gewächshaus'))) {
+  if (guard % 1 === 0 && (best.name.startsWith('Pflanze') || best.name.startsWith('Tier') || best.name.startsWith('Baum') || best.name.startsWith('Upgrade') || best.name.startsWith('Grundstück') || best.name.startsWith('Fabrik') || best.name.startsWith('Gewächshaus') || best.name.startsWith('Mine'))) {
     log.push({ label: '  gekauft: ' + best.name, t: s.t, plots: s.plots, inc: income(s) });
   }
 }
 
 const fmt = t => { const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60); return h + 'h ' + String(m).padStart(2, '0') + 'm'; };
 const short = n => n >= 1e6 ? (n / 1e6).toFixed(1) + ' Mio' : n >= 1e3 ? (n / 1e3).toFixed(1) + 'k' : n.toFixed(1);
-console.log('Spieler-Effizienz (ohne Erntehelfer): ' + PLAYER_EFF);
+console.log('Spieler-Effizienz (manueller Anteil ohne Arbeiter/Traktoren): ' + PLAYER_EFF);
 console.log('Zeit       Ereignis                         Grundstücke   Einkommen/s');
 for (const l of log) console.log(fmt(l.t).padEnd(10), l.label.padEnd(34), String(l.plots).padEnd(12), short(l.inc));
 console.log('\n=> Ziel ' + CFG.goal.toLocaleString('de-DE') + ' Fenriy erreicht nach ' + fmt(s.t) + (s.total < CFG.goal ? '  (NICHT erreicht!)' : ''));
