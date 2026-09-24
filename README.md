@@ -60,7 +60,7 @@ Jeder Baum kann optional `art.size` (z. B. `0.8` bis `1.4`) bekommen – rein op
 
 ### Neues Upgrade (`js/data/upgrades.js`)
 
-Vorhandene Effekte: `harvester`, `autosow`, `growth`, `price`, `capacity`, `workers` (Anzahl Arbeiter), `workerspeed` (Lauftempo der Arbeiter). Einfach eine weitere Stufe oder ein weiteres Upgrade mit demselben `effect` eintragen (Werte werden kombiniert).
+Vorhandene Effekte: `tractors` (Anzahl Traktoren), `autosow`, `growth`, `price`, `capacity`, `workers` (Anzahl Arbeiter), `workerspeed` (Lauftempo der Arbeiter). Einfach eine weitere Stufe oder ein weiteres Upgrade mit demselben `effect` eintragen (Werte werden kombiniert).
 
 ### Flüsse & Deko (`js/data/decor.js`)
 
@@ -84,6 +84,14 @@ Verarbeiten deine Ernte zu wertvolleren Waren (Brot, Wurst, Käse, ...). Funktio
 
 Liefern selbst einen kleinen Ertrag und beschleunigen zusätzlich das Wachstum ALLER Felder, Bäume, Tierfarmen und Produktionsstätten um `growth` (z.B. `0.05` = +5 %, mehrere Gewächshäuser stapeln sich). Neue Ausbaustufe = neuer Eintrag.
 
+### Minen (`js/data/mines.js`)
+
+Endgame-Kategorie: Arbeiter graben nach Erz. Funktionieren mechanisch wie Produktionsstätten/Gewächshäuser (füllen sich mit der Zeit, werden geerntet/verkauft, auch von Arbeitern bedient), nur deutlich teurer und mit viel höherem Ertrag – bewusst mit langer Amortisationszeit, damit sie kein Rush-Weg zum Ziel sind, sondern ein Bonus-Ziel fürs Endgame. `art.icon` steuert das gezeichnete Erz-Symbol (`coal`, `iron`, `gold`, `gem` – neue Icons in `productIcon()` in `js/core/sprites.js` ergänzen). Neue Mine = neuer Eintrag, erscheint automatisch im Baumenü unter "Minen".
+
+### Traktoren (`js/core/tractors.js`)
+
+Das Upgrade *Traktoren* (Effekt `tractors`) stellt sichtbare Traktoren auf den Hof, die selbstständig zu reifen Feldern fahren, sie abernten und sofort wieder einsäen – unabhängig vom Sämaschine-Upgrade. Anders als Arbeiter kümmern sie sich nur um Felder (keine Bäume/Tierfarmen/Fabriken/Minen) und tragen nichts zur Scheune, sondern verkaufen direkt auf dem Feld. Skins (`green`, `red`, `yellow`, `blue`) werden reihum vergeben (`art.tractor` in `js/core/sprites.js`). Ist mindestens ein Traktor gekauft, sammelt außerdem die Offline-Berechnung (`FF.offline`) beim Wiedereinstieg automatisch alles Fertige ein (Felder wie auch Bäume, Tierfarmen, Fabriken, Gewächshäuser und Minen).
+
 ### Wetter (`js/core/weather.js`)
 
 Seltener, kurzer Regen (manchmal ein Gewitter mit Blitz & Donner), der das Wachstum kurzzeitig beschleunigt. Häufigkeit und Dauer oben in der Datei bei `MIN_GAP`/`MAX_GAP`/`MIN_DUR`/`MAX_DUR` einstellbar.
@@ -102,7 +110,7 @@ Optional: ein kleiner, kostenloser Server (Code liegt in `server/`, Anleitung in
 
 ### Arbeiter
 
-Arbeiter (Upgrade *Arbeiter*) laufen selbstständig zu reifen Feldern, Bäumen und Tierfarmen, ernten, säen leere Felder neu, tragen die Ware zur Scheune und verkaufen sie mit Bonus. Einstellungen in `js/data/config.js`: `workerCarry` (wie viel sie tragen) und `workerBonus` (Verkaufsaufschlag). Das Verhalten steht in `js/core/workers.js`.
+Arbeiter (Upgrade *Arbeiter*) laufen selbstständig zu reifen Feldern, Bäumen, Tierfarmen, Fabriken, Gewächshäusern und Minen, ernten, säen leere Felder neu, tragen die Ware zur Scheune und verkaufen sie mit Bonus. Einstellungen in `js/data/config.js`: `workerCarry` (wie viel sie tragen) und `workerBonus` (Verkaufsaufschlag). Das Verhalten steht in `js/core/workers.js`.
 
 ### Musik und Geräusche (`js/core/audio.js`)
 
@@ -119,7 +127,7 @@ Der Monolog des alten Bauern steht in `buildSteps()`, jede `say('Alter Bauer', '
 ### Update veröffentlichen
 
 1. Änderungen in den Dateien machen.
-2. In `index.html` die Zeile `window.FF_BUILD = '0.6.1';` hochzählen (z. B. `'0.6.2'`). Dadurch laden alle Spieler automatisch die neuen Dateien statt der alten aus dem Browser-Cache.
+2. In `index.html` die Zeile `window.FF_BUILD = '0.7.0';` hochzählen (z. B. `'0.7.1'`). Dadurch laden alle Spieler automatisch die neuen Dateien statt der alten aus dem Browser-Cache.
 3. Einen Eintrag in `js/data/changelog.js` ergänzen.
 4. Dateien auf GitHub hochladen.
 
@@ -129,7 +137,7 @@ Der Monolog des alten Bauern steht in `buildSteps()`, jede `say('Alter Bauer', '
 
 Erhöhe `saveVersion` in `js/data/config.js` und ergänze in `js/core/state.js` unter `MIGRATIONS` eine Funktion, die alte Spielstände umbaut. Fehlende Felder werden sonst automatisch mit Standardwerten aufgefüllt.
 
-Der Grundstückspreis steigt exponentiell mit jedem gekauften Grundstück, ist aber über `plotPriceCap` (Standard 1.000.000) gedeckelt – wird also ab dieser Summe nicht mehr teurer (`js/data/config.js`, `plotPrice`).
+Der Grundstückspreis steigt immer weiter exponentiell mit jedem gekauften Grundstück, kein Deckel (`js/data/config.js`, `plotPrice`).
 
 ## Preise abstimmen
 
@@ -137,7 +145,7 @@ Der Grundstückspreis steigt exponentiell mit jedem gekauften Grundstück, ist a
 node tools/balance-sim.js
 ```
 
-Ein Bot spielt das Spiel gierig durch und zeigt, wann er welche Meilensteine erreicht und wie lange er bis zum Ziel braucht. Aktuell schafft der Bot es in ca. 50 Minuten. Ein Mensch braucht vermutlich länger, weil er nicht jeden Moment optimal kauft. Nach dem Ändern von Preisen einfach nochmal laufen lassen. Mit `--eff=0.5` simulierst du einen weniger effizienten Spieler.
+Ein Bot spielt das Spiel gierig durch und zeigt, wann er welche Meilensteine erreicht und wie lange er bis zum Ziel braucht. Aktuell schafft der Bot es in ca. 55 Minuten – Minen kauft er dabei absichtlich nicht (zu teuer, zahlen sich in der Zeit bis zum Ziel nicht aus), sie sind reines Endgame-/Bonus-Ziel. Ein Mensch braucht vermutlich länger, weil er nicht jeden Moment optimal kauft. Nach dem Ändern von Preisen einfach nochmal laufen lassen. Mit `--eff=0.5` simulierst du einen weniger effizienten Spieler.
 
 ## Ordner
 
@@ -145,7 +153,7 @@ Ein Bot spielt das Spiel gierig durch und zeigt, wann er welche Meilensteine err
 index.html          Startseite, lädt alle Scripts (FF_BUILD = Version)
 css/style.css       Aussehen der Oberfläche
 js/data/            Spielinhalt (hier arbeitest du für Updates)
-js/core/            Spiel-Engine (Logik, Grafik, Eingabe, Oberfläche, Arbeiter, Musik, Einführung, Jahreszeiten, Ereignisse, Wildtiere & Zaun-Tiere)
+js/core/            Spiel-Engine (Logik, Grafik, Eingabe, Oberfläche, Arbeiter, Traktoren, Musik, Einführung, Jahreszeiten, Ereignisse, Wildtiere & Zaun-Tiere)
 tools/balance-sim.js  Wirtschafts-Simulation
 server/              Optionaler Bestenlisten-Server (separat deployen, siehe server/README.md)
 ```
