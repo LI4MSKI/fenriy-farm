@@ -1,5 +1,7 @@
 /* TRAKTOREN: fahren während des aktiven Spiels automatisch reife Felder ab, mähen (ernten) sie
- * und säen sofort wieder ein (unabhängig von der Sämaschine). Ersetzen den alten "Erntehelfer".
+ * und säen sofort wieder ein (unabhängig von der Sämaschine). Haben ein breites Mähwerk und
+ * bearbeiten dabei immer bis zu drei Felder nebeneinander in derselben Reihe auf einmal, sofern
+ * die Nachbarfelder auch reif sind. Ersetzen den alten "Erntehelfer".
  * Anzahl kommt vom Upgrade 'tractors' (FF.M.tractors). Kein eigener Speicherstand nötig -
  * werden bei jedem Start/Kauf neu aufgestellt (FF.syncTractors). */
 (function () {
@@ -93,14 +95,23 @@
         }
         case 'go': {
           if (!isReadyField(tr.target)) { release(tr); tr.st = 'idle'; tr.t = 0; break; }
-          if (moveTo(tr, tr.tx, tr.ty, dt)) { tr.st = 'work'; tr.t = 0.7; }
+          if (moveTo(tr, tr.tx, tr.ty, dt)) { tr.st = 'work'; tr.t = 0.8; }
           break;
         }
         case 'work': {
           tr.t -= dt;
           if (tr.t > 0) break;
           const e = tr.target;
-          if (isReadyField(e)) FF.harvestField(e, false, { replant: true });
+          if (isReadyField(e)) {
+            FF.harvestField(e, false, { replant: true });
+            // Breites Mähwerk: reife Nachbarfelder links & rechts in derselben Reihe werden im
+            // selben Arbeitsgang gleich mit erledigt - der Traktor bearbeitet so immer bis zu
+            // drei Felder nebeneinander auf einmal.
+            [-1, 1].forEach(function (dx) {
+              const n = FF.entAt(e.x + dx, e.y);
+              if (isReadyField(n)) FF.harvestField(n, false, { replant: true });
+            });
+          }
           release(tr);
           tr.st = 'idle'; tr.t = 0;
           break;

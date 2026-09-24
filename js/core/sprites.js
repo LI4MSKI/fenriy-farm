@@ -255,23 +255,67 @@
     });
   };
 
-  /* Traktor (vier Farben, zwei Fahr-Bilder). Fährt reife Felder ab, siehe js/core/tractors.js. */
+  /* Traktor (vier Farben, zwei Fahr-Bilder). Fährt reife Felder ab, siehe js/core/tractors.js.
+   * Etwas größere, realistischere Textur: großes profiliertes Hinterrad, kleineres Vorderrad,
+   * Achsbalken, Kotflügel, verjüngte Motorhaube mit Kühlergrill, offene Kabine mit Dach/Überrollbügel,
+   * Sitz, Lenkrad, Auspuffrohr und Front-Gewicht. Ausrichtung: Kabine/Hinterrad links, Motor/Front rechts. */
   const TRACTOR_SKIN = {
     green: ['#4fa83f', '#2f7a2a'], red: ['#d9483a', '#8a2318'],
     yellow: ['#f2c94c', '#b8860b'], blue: ['#4a86c5', '#264f7a']
   };
+  const TRACTOR_W = 22, TRACTOR_H = 18;
+  function tractorWheel(g, x, y, w, h, f) {
+    R(g, '#151515', x, y, w, h);
+    R(g, '#2c2c2c', x + 1, y + 1, w - 2, h - 2);
+    for (let i = f; i < w; i += 2) R(g, '#0a0a0a', x + i, y, 1, h);
+    const hw = Math.max(2, Math.round(w * 0.4));
+    const hx = x + Math.round(w / 2 - hw / 2), hy = y + Math.round(h / 2 - hw / 2);
+    R(g, '#8f8f8f', hx, hy, hw, hw);
+    R(g, '#d0d0d0', hx, hy, 1, 1);
+  }
   art.tractor = function (skin, frame) {
     const c = TRACTOR_SKIN[skin] || TRACTOR_SKIN.green, f = frame ? 1 : 0;
-    return cached('tractor_' + skin + '_' + f, 18, 16, function (g) {
-      R(g, 'rgba(0,0,0,0.18)', 2, 14, 14, 2);
-      if (f) R(g, 'rgba(255,255,255,0.3)', 0, 12, 2, 1);
-      R(g, '#222', 1, 8, 6, 6); R(g, '#666', 3, 10, 2, 2);
-      R(g, '#222', 12, 10, 4, 4); R(g, '#666', 13, 11, 2, 2);
-      R(g, c[0], 3, 6, 11, 4); R(g, c[1], 3, 9, 11, 1);
-      R(g, U.shade(c[0], 30), 4, 6, 9, 1);
-      R(g, c[0], 12, 7, 4, 3); R(g, c[1], 12, 9, 4, 1);
-      R(g, c[1], 4, 1, 6, 6); R(g, '#bfe6ff', 5, 2, 4, 3); R(g, 'rgba(255,255,255,0.4)', 5, 2, 1, 3);
-      R(g, '#333', 13, 2, 1, 5); R(g, '#555', 13, 1, 1, 1);
+    return cached('tractor_' + skin + '_' + f, TRACTOR_W, TRACTOR_H, function (g) {
+      R(g, 'rgba(0,0,0,0.18)', 2, TRACTOR_H - 2, TRACTOR_W - 4, 2);
+      // Rahmen/Unterbau: verbindet Kabine und Motorhaube durchgehend mit den Achsen (zuerst
+      // gezeichnet, damit Räder/Haube/Kabine sauber darüber liegen und keine Lücke bleibt)
+      R(g, U.shade(c[0], -20), 2, 9, 19, 2);
+      tractorWheel(g, 0, 7, 8, 8, f);
+      tractorWheel(g, 15, 10, 5, 5, f);
+      // Achsbalken zwischen den Rädern
+      R(g, '#2a2a2a', 7, 11, 9, 2);
+      // Kotflügel über dem Hinterrad
+      R(g, U.shade(c[0], -10), 0, 5, 9, 2);
+      R(g, U.shade(c[0], 15), 0, 5, 9, 1);
+      // Seitenverkleidung zwischen Fahrerplatz und Motorhaube (schließt die Lücke sauber)
+      R(g, U.shade(c[0], -5), 8, 6, 5, 3);
+      // Motorhaube (verjüngt sich zum Kühlergrill vorne)
+      R(g, c[0], 13, 4, 8, 6);
+      R(g, U.shade(c[0], 25), 13, 4, 8, 1);
+      R(g, c[1], 13, 9, 8, 1);
+      // Kühlergrill
+      R(g, U.shade(c[0], -25), 20, 4, 1, 6);
+      for (let y = 5; y < 9; y++) R(g, '#222', 20, y, 1, 1);
+      // Front-Stoßfänger/Gewicht (rechts neben dem Grill, überdeckt ihn nicht)
+      R(g, U.shade(c[1], -10), 21, 7, 1, 3);
+      // Kabinen-Dach / Überrollbügel
+      R(g, c[1], 3, 0, 10, 2);
+      R(g, U.shade(c[1], -25), 3, 1, 10, 1);
+      R(g, c[1], 3, 2, 2, 4);
+      R(g, c[1], 11, 2, 2, 4);
+      // Windschutzscheibe
+      R(g, '#bfe6ff', 5, 2, 6, 4);
+      R(g, 'rgba(255,255,255,0.45)', 5, 2, 2, 4);
+      R(g, U.shade('#bfe6ff', -30), 5, 5, 6, 1);
+      // Sitz (unter der Kabine, über dem Rahmen)
+      R(g, '#3a2a1a', 5, 6, 3, 3);
+      R(g, U.shade('#3a2a1a', 25), 5, 5, 3, 1);
+      // Lenkrad
+      R(g, '#222', 8, 4, 2, 2);
+      // Auspuffrohr, ragt vorne an der Kabine über die Motorhaube hinaus
+      R(g, '#555555', 13, 0, 2, 5);
+      R(g, '#333333', 13, 0, 1, 5);
+      R(g, U.shade('#555555', 30), 13, 0, 2, 1);
     });
   };
 

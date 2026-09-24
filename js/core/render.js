@@ -359,9 +359,9 @@
       if (o.tractor) {
         const tr = o.tractor;
         const spr = art.tractor(tr.skin, tr.moving ? Math.floor(tr.step) % 2 : 0);
-        const tx = Math.round(tr.x), ty = Math.round(tr.y) - 15;
-        if (tr.flip) { ctx.save(); ctx.translate(tx + 9, ty); ctx.scale(-1, 1); ctx.drawImage(spr, 0, 0); ctx.restore(); }
-        else ctx.drawImage(spr, tx - 9, ty);
+        const tx = Math.round(tr.x), ty = Math.round(tr.y) - 17;
+        if (tr.flip) { ctx.save(); ctx.translate(tx + 11, ty); ctx.scale(-1, 1); ctx.drawImage(spr, 0, 0); ctx.restore(); }
+        else ctx.drawImage(spr, tx - 11, ty);
         continue;
       }
       if (o.critter) {
